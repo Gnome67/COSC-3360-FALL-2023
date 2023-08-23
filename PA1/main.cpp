@@ -23,5 +23,6 @@ int main ()
     for(int counter = 0; counter < strings.size(); counter++)
     {
         //group up the letters and their frequencies
+        //make a map of pairs/vectors
     }
 }
