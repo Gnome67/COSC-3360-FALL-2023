@@ -7,8 +7,50 @@
 #include <queue>
 #include <string>
 #include <vector>
+#include <unordered_map>
+#include <memory>
+#include <unistd.h>
 
 using namespace std;
+
+struct threader
+{
+
+};
+
+/*
+Output FOrmatting:
+(ex. string:
+A 2 B 4 C 3 A 7
+B 3 A 3 C 3 A 1 B 1 C 1
+)
+
+CPU 1
+Task scheduling information: A(2), B(4), C(3), A(7)
+Entropy for CPU 1
+0.00 0.92 1.53 1.42
+
+CPU 2
+Tak scheduling information: B(3), A(3), C(3), A(1), B(1), C(1)
+Entropy for CPU 2
+0.00 1.00 1.58 1.57 1.57 1.58
+*/
+
+float calculateEntropy(unordered_map<char, vector<int>> calculator)
+{
+    return 0.00;
+}
+
+void output(int CPUcount)
+{
+    for(int counter = 0; counter < CPUcount; counter++)
+        {
+            cout << "CPU " << counter << endl;
+            cout << "Task scheduling information: " << "This is not ready yet." << endl;
+            cout << "Entropy for CPU " << counter << endl;
+            cout << "Replace this with a function to calculate/store entropy values." << endl;
+        }
+}
 
 int main () 
 {
@@ -16,7 +58,8 @@ int main ()
     int toCalc = 0; //the units of time for the character
     char currFind = ""; //the current character we are calculating the entropy for
     int currCalc = 0; //the current units of time we are calculating the entropy for
-    
+
+    vector<string> cpuCounter;
     string inputN = " "; //the moodle STDIN string
     string toSplit = ""; //how we find each key and value by using substring
     vector<int> holding; //pushing each char and its frequency into a map, but since the map is a char and vector, we need a vector to hold the frequencies temporarily
@@ -26,6 +69,7 @@ int main ()
     do
         {
             cin >> inputN;
+            cpuCounter.push_back(inputN);
             //group up the letters and their frequencies
             for(int x = 0; x < inputN.length(); x++)
             {
@@ -50,6 +94,8 @@ int main ()
             }
         }
     while(inputN != "")
+    //for each INDIVIDUAL value in the map, calculate entropyContinue
+    output(cpuCounter.size());
 }
 
 //Entropy algorithm in pseudocode
