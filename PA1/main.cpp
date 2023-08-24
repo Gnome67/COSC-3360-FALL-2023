@@ -19,7 +19,7 @@ struct threader
 };
 
 /*
-Output FOrmatting:
+Output Formatting:
 (ex. string:
 A 2 B 4 C 3 A 7
 B 3 A 3 C 3 A 1 B 1 C 1
@@ -36,9 +36,12 @@ Entropy for CPU 2
 0.00 1.00 1.58 1.57 1.57 1.58
 */
 
-float calculateEntropy(unordered_map<char, vector<int>> calculator)
+float calculateEntropy(char currentChar, int currentTIme)
 {
-    return 0.00;
+    float entropy = 0.00;
+    //Formula = log sub-b (NFreq) - ((log sub-b(currFreq) - currH) * (currFreq) - currentTerm + newTerm)/NFreq
+    
+    return entropy;
 }
 
 void output(int CPUcount)
@@ -94,7 +97,7 @@ int main ()
             }
         }
     while(inputN != "")
-    //for each INDIVIDUAL value in the map, calculate entropyContinue
+    //for each INDIVIDUAL value in the map, calculate entropy
     output(cpuCounter.size());
 }
 
