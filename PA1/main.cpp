@@ -12,10 +12,15 @@ using namespace std;
 
 int main () 
 {
-    char toFind = "";
-    int toCalc = "";
-    string inputN = " ";
-    string toSplit = "";
+    char toFind = ""; //the character
+    int toCalc = 0; //the units of time for the character
+    char currFind = ""; //the current character we are calculating the entropy for
+    int currCalc = 0; //the current units of time we are calculating the entropy for
+    
+    string inputN = " "; //the moodle STDIN string
+    string toSplit = ""; //how we find each key and value by using substring
+    vector<int> holding; //pushing each char and its frequency into a map, but since the map is a char and vector, we need a vector to hold the frequencies temporarily
+    
     //make a map of chars and vectors
     unordered_map<char, vector<int>> entropyMap;
     do
@@ -23,8 +28,8 @@ int main ()
             cin >> inputN;
             //group up the letters and their frequencies
             for(int x = 0; x < inputN.length(); x++)
-                {
-                    if(isalpha(inputN[x])
+            {
+                    if(isalpha(inputN[x]))
                     {
                         toFind = inputN[X];
                         toSplit = inputN.substr(toFind+2,1);
@@ -32,13 +37,17 @@ int main ()
                     //check if the value is in the map already
                     if(entropyMap.contains(toFind))
                     {
-                        //if it is, add it to the key's value-vector   
+                        //if it is, add it to the key's value-vector
+                        entropyMap[toFind].push_back(toCalc);
                     }
                     else
                     {
                         //otherwise add a new key and value
+                        holding.push_back(toCalc);
+                        entropyMap.insert(toFind, holding);
+                        holding.pop_back();
                     }
-                }
+            }
         }
     while(inputN != "")
 }
