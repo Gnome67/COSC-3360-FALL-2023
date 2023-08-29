@@ -1,0 +1,14 @@
+CPU 1
+Task scheduling information: C(2), B(3), C(1), A(4)
+Entropy for CPU 1
+0.00 0.97 1.00 1.57
+
+CPU 2
+Task scheduling information: I(3), J(10), I(100)
+Entropy for CPU 2
+0.00 0.78 0.43
+
+CPU 3
+Task scheduling information: K(1), L(2), K(3), L(4), M(5)
+Entropy for CPU 3
+0.00 0.92 0.92 0.97 1.57
