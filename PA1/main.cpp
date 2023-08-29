@@ -50,12 +50,13 @@ float calculateEntropy(unordered_map<char, vector<int>> entropyMap, string taskO
     //Formula = log2(NFreq) - ((log2(currFreq) - currH) * (currFreq) - currentTerm + newTerm)/NFreq
     for(int x = 0; x < taskOrder.size(); x++) //for each task
     {
+        //follow the tasks in the order they were given, below for loop is for if a task letter is repeaated with multiple frequencies
         for(int y = 0; y < entropyMap[entropyMap.find(taskOrder[x])].size(); y++) //if a task has more than 1 frequency
         {
             // calculate entropy for 2nd task
         }
     }
-    if(nFreq == extraFreq) { entropy = 0; }
+    if(nFreq == extraFreq) { entropy = 0; } 
     else { entropy = log2(nFreq) - ((log2(currFreq - currEntropy) * (currFreq) - currTerm + newTerm)/nFreq); }
     return entropy;
 }
@@ -85,6 +86,7 @@ int main ()
     vector<int> holding; //pushing each char and its frequency into a map, but since the map is a char and vector, we need a vector to hold the frequencies temporarily
     
     //make a map of chars and vectors
+    //each STRING is a thread, find a way to separate the tasks in all strings from all other strings
     unordered_map<char, vector<int>> entropyMap;
     do
         {
@@ -93,12 +95,15 @@ int main ()
             //group up the letters and their frequencies
             for(int x = 0; x < inputN.length(); x++)
             {
-                    if(isalpha(inputN[x]))
+                    if(isalpha(inputN[x])) //if this is a valid task
                     {
                         toFind = inputN[x];
+                        //taskOrder keeps task of what tasks we have so far
                         taskOrder += toFind;
+                        //find the frequency (toCalc) for the task (toSplit)
                         toSplit = inputN.substr(toFind+2,1);
-                        //convert toSplit to toCalc
+                        //convert toSplit (char) to toCalc (int)
+                        toCalc = toSplit - '0';
                     }
                     //check if the value is in the map already
                     if(entropyMap.contains(toFind))
