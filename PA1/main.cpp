@@ -87,7 +87,11 @@ int main ()
     
     //make a map of chars and vectors
     //each STRING is a thread, find a way to separate the tasks in all strings from all other strings
-    unordered_map<char, vector<int>> entropyMap;
+    unordered_map<char, vector<int>> entropyMap; //for each individual threaded CPU
+    vector<unordered_map<char, vector<int>> allThreads; //holds all threaded CPUs
+
+    //make this a while loop that initializes a new map when a string is inputted and processes the string into a map
+    //once the string is processed, push the map into the vector of maps, and initialize the next map
     do
         {
             cin >> inputN;
