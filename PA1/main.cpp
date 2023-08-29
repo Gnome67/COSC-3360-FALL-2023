@@ -37,23 +37,22 @@ Entropy for CPU 2
 0.00 1.00 1.58 1.57 1.57 1.58
 */
 
-float calculateEntropy(unordered_map<char, vector<int>> entropyMap)
+float calculateEntropy(unordered_map<char, vector<int>> entropyMap, string taskOrder)
 {
-    char selectedTask = ' ';
-    int extraFreq = 0;
-    float currTerm = 0.00;
-    float newTerm = 0.00;
-    int freq = 0;
-    int currFreq = 0;
-    float currEntropy = 0.00;
-    float entropy = 0.00;
-    int nFreq = currFreq + extraFreq;
+    char selectedTask = ' '; //the current task we are selecting the entropy for
+    int extraFreq = 0; //the frequencies paired with the selectedTask
+    float currTerm = 0.00; //currentTerm = freq[selectedTask] * log2(freq[selectedTask])
+    float newTerm = 0.00; //newTerm = (freq[selectedTask] + extraFreq) * log2(freq[selectedTask] + extraFreq)
+    int currFreq = 0; //the sum of all previous frequencies
+    float currEntropy = 0.00; //initally 0, converts to the most recently created entropy
+    float entropy = 0.00; //the entropy for the selectedTask and the extraFrequency
+    int nFreq = currFreq + extraFreq; //the sum of all previous frequencies + the frequency paired with the selectedTask
     //Formula = log2(NFreq) - ((log2(currFreq) - currH) * (currFreq) - currentTerm + newTerm)/NFreq
-    for(int x = 0; x < entropyMap.size(); x++) //for each task
+    for(int x = 0; x < taskOrder.size(); x++) //for each task
     {
-        for(int y = 0; y < entropyMap[x].size(); y++) //if a task has more than 1 frequency
+        for(int y = 0; y < entropyMap[entropyMap.find(taskOrder[x])].size(); y++) //if a task has more than 1 frequency
         {
-            //
+            // calculate entropy for 2nd task
         }
     }
     if(nFreq == extraFreq) { entropy = 0; }
@@ -80,8 +79,9 @@ int main ()
     int currCalc = 0; //the current units of time we are calculating the entropy for
 
     vector<string> cpuCounter; //list of how many threads to create
-    string inputN = " "; //the moodle STDIN string
+    string inputN = ""; //the moodle STDIN string
     string toSplit = ""; //how we find each key and value by using substring
+    string taskOrder = ""; //the order in which we will perform the tasks
     vector<int> holding; //pushing each char and its frequency into a map, but since the map is a char and vector, we need a vector to hold the frequencies temporarily
     
     //make a map of chars and vectors
@@ -96,6 +96,7 @@ int main ()
                     if(isalpha(inputN[x]))
                     {
                         toFind = inputN[x];
+                        taskOrder += toFind;
                         toSplit = inputN.substr(toFind+2,1);
                         //convert toSplit to toCalc
                     }
@@ -131,10 +132,10 @@ Output: H, NFreq
 5.     if freq[selectedTask] == 0 then
 6.         currentTerm = 0
 7.     else
-8.         currentTerm = freq[selectedTask] * log sub-b(freq[selectedTask])
+8.         currentTerm = freq[selectedTask] * log2(freq[selectedTask])
 9.     end if
-10.         newTerm = (freq[selectedTask] + extraFreq) * log sub-b(freq[selectedTask] + extraFreq)
-11.     H = log sub-b (NFreq) - ((log sub-b(currFreq) - currH) * (currFreq) - currentTerm + newTerm)/NFreq
+10.         newTerm = (freq[selectedTask] + extraFreq) * log2(freq[selectedTask] + extraFreq)
+11.     H = log sub2(NFreq) - ((log sub2(currFreq) - currH) * (currFreq) - currentTerm + newTerm)/NFreq
 12. end if
 13. return H, NFreq
 */
