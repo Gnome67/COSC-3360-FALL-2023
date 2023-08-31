@@ -32,7 +32,13 @@ vector<float> calculateEntropy(unordered_map<char, vector<int>> entropyMap, stri
     float entropy = 0.00; //the entropy for the selectedTask and the extraFrequency
     int nFreq = /*currFreq + extraFreq*/ 0; //the sum of all previous frequencies + the frequency paired with the selectedTask
     //Formula = log2(NFreq) - ((log2(currFreq) - currH) * (currFreq) - currentTerm + newTerm)/NFreq
-          
+
+    unordered_map<char, int> frequencyArray;
+    for(int count = 0; count < entropyMap.size(); count++;)
+    {
+        frequencyArray.insert({entropyMap[count], 0}) //initializing the frequency array
+    }
+    
     /*
     Steps
     1. initialize the selectedTask and extraFrequency DONE?
@@ -46,7 +52,6 @@ vector<float> calculateEntropy(unordered_map<char, vector<int>> entropyMap, stri
     8. 
     */
 
-    
     for(int x = 0; x < taskOrder.size(); x++) //for each task
     {
         //follow the tasks in the order they were given, below for loop is for if a task letter is repeated with multiple frequencies
@@ -76,9 +81,16 @@ vector<float> calculateEntropy(unordered_map<char, vector<int>> entropyMap, stri
         }
         else { extraFreq = entropyMap[0]; } //if there is only 1 value in the task's vector, then just put that as the current task's frequency
         nFreq = currFreq + extraFreq;
+        //impement currentTerm
+        if(frequencyArray[x].second == 0) { currentTerm = 0; }
+        else { currentTerm = frequencyArray[x].second * log2(; }
+        //implement newTerm
+        newTerm = (frequencyArray[x] + extraFreq) * log2(frequencyArray[x] + extraFreq);
         if(nFreq == extraFreq) { entropy = 0; } //for the first loop, the entropy will always be 0
         else { entropy = log2(nFreq) - ((log2(currFreq - currEntropy) * (currFreq) - currTerm + newTerm)/nFreq); }
         currFreq += extraFreq;
+        //implement freqArray
+        frequencyArray[x].second = extraFreq;
     }
     
     return entropyHold;
