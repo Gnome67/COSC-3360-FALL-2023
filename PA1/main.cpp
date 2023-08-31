@@ -166,7 +166,7 @@ int main ()
     //once the string is processed, push the map into the vector of maps, and initialize the next map
     do
         {
-            cin >> inputN;
+            getline(cin, inputN);
             cpuCounter.push_back(inputN);
             //group up the letters and their frequencies
             for(int x = 0; x < inputN.length(); x++)
