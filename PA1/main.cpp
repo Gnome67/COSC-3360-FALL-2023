@@ -114,7 +114,7 @@ Entropy for CPU 2
 0.00 1.00 1.58 1.57 1.57 1.58
 */
 
-void output(string CPUcount)
+void output(string CPUcount, vector<float> answer)
 {
     string newString = "";
     //separate the letters and the numbers
@@ -131,12 +131,16 @@ void output(string CPUcount)
         }
     }
     newString.pop_back(); //there will be a comma at the end, this is to take care of that
-    for(int counter = 0; counter < CPUcount.size(); counter++)
+    for(int b = 0; b < CPUcount.size(); b++)
         {
             cout << "CPU " << counter << endl;
             cout << "Task scheduling information: " << newString << endl;
             cout << "Entropy for CPU " << counter << endl;
-            cout << "Replace this with a function to calculate/store entropy values." << endl;
+            for(int c = 0; c < CPUcount.size()-1; c++)
+            {
+                cout << answer[c] << " ";
+            }
+            cout << answer[answer.size() - 1];
         }
 }
 
@@ -198,6 +202,6 @@ int main ()
         }
     while(inputN != "");
     //for each INDIVIDUAL value in the map, calculate entropy
-    calculateEntropy(allThreads[0], taskOrderCount[0]); //use a for loop to loop through each thread
-    output(cpuCounter[0]); //use a for loop to loop through each thread
+    vector<float> answer = calculateEntropy(allThreads[0], taskOrderCount[0]); //use a for loop to loop through each thread
+    output(cpuCounter[0], answer); //use a for loop to loop through each thread
 }
