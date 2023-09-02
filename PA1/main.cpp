@@ -30,8 +30,7 @@ vector<float> calculateEntropy(unordered_map<char, vector<int>> entropyMap, stri
     int currFreq = 0; //the sum of all previous frequencies
     float currEntropy = 0.00; //initally 0, converts to the most recently created entropy
     float entropy = 0.00; //the entropy for the selectedTask and the extraFrequency
-    int nFreq = /*currFreq + extraFreq*/ 0; //the sum of all previous frequencies + the frequency paired with the selectedTask
-    //Formula = log2(NFreq) - ((log2(currFreq) - currH) * (currFreq) - currentTerm + newTerm)/NFreq
+    int nFreq = 0; //the sum of all previous frequencies + the frequency paired with the selectedTask
 
     unordered_map<char, int> frequencyArray;
     for(int count = 0; count < entropyMap.size(); count++;)
@@ -39,19 +38,6 @@ vector<float> calculateEntropy(unordered_map<char, vector<int>> entropyMap, stri
         frequencyArray.insert({entropyMap[count], 0}) //initializing the frequency array
     }
     
-    /*
-    Steps
-    1. initialize the selectedTask and extraFrequency DONE?
-    2. initialize nFreq DONE
-    3. initialize H if it hasnt already been initialized DONE
-    4. set currFreq += extraFreq DONE
-    5. set currTerm = freq[x];
-    6. set newTerm = (freq[x] + extraFreq)*log(freq[x]+extraFreq)
-    LOOP X+1
-    7. set H = log2(nFreq) - ((log2(currFreq - currEntropy) * (currFreq) - currTerm + newTerm)/nFreq)
-    8. 
-    */
-
     for(int x = 0; x < taskOrder.size(); x++) //for each task
     {
         //follow the tasks in the order they were given, below for loop is for if a task letter is repeated with multiple frequencies
@@ -97,28 +83,15 @@ vector<float> calculateEntropy(unordered_map<char, vector<int>> entropyMap, stri
 }
 
 /*
-Output Formatting:
-(ex. string:
-A 2 B 4 C 3 A 7
-B 3 A 3 C 3 A 1 B 1 C 1
-)
-
 CPU 1
 Task scheduling information: A(2), B(4), C(3), A(7)
 Entropy for CPU 1
 0.00 0.92 1.53 1.42
-
-CPU 2
-Tak scheduling information: B(3), A(3), C(3), A(1), B(1), C(1)
-Entropy for CPU 2
-0.00 1.00 1.58 1.57 1.57 1.58
 */
 
 void output(string CPUcount, vector<float> answer)
 {
     string newString = "";
-    //separate the letters and the numbers
-    //put the numbers in () with a comma and space after
     for(int a = 0; a < CPUcount.size(); a++)
     {
         if(isalpha(CPUcount[a]))
@@ -156,7 +129,6 @@ int main ()
     string taskOrder = ""; //the order in which we will perform the tasks
     vector<string> taskOrderCount; //this holds the taskOrder for each CPU
     vector<int> holding; //pushing each char and its frequency into a map, but since the map is a char and vector, we need a vector to hold the frequencies temporarily
-    
     //make a map of chars and vectors
     //each STRING is a thread, find a way to separate the tasks in all strings from all other strings
     unordered_map<char, vector<int>> entropyMap; //for each individual threaded CPU
