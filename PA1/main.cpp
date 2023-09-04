@@ -54,7 +54,7 @@ vector<float> calculateEntropy(unordered_map<char, vector<int>> entropyMap, stri
                 }
                 else
                 {
-                    tempString.substr(tempString.find(tempString[x])+1);
+                    tempString = tempString.substr(tempString.find(tempString[x])+1);
                     counter--;
                 }
             }
