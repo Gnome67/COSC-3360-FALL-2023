@@ -1,7 +1,6 @@
 #include <iostream>
 #include <sstream>
 #include <fstream>
-#include <pthread.h>
 #include <algorithm>
 #include <memory>
 #include <queue>
@@ -9,8 +8,9 @@
 #include <vector>
 #include <unordered_map>
 #include <memory>
-#include <unistd.h>
 #include <math.h>
+#include <pthread.h>
+#include <unistd.h>
 
 using namespace std;
 
@@ -32,19 +32,13 @@ vector<float> calculateEntropy(unordered_map<char, vector<int>> entropyMap, stri
     float entropy = 0.00; //the entropy for the selectedTask and the extraFrequency
     int nFreq = 0; //the sum of all previous frequencies + the frequency paired with the selectedTask
 
-    unordered_map<char, int> frequencyArray;
-    for(int count = 0; count < entropyMap.size(); count++;)
-    {
-        frequencyArray.insert({entropyMap[count], 0}) //initializing the frequency array
-    }
-    
     for(int x = 0; x < taskOrder.size(); x++) //for each task
     {
         //follow the tasks in the order they were given, below for loop is for if a task letter is repeated with multiple frequencies
         selectedTask = taskOrder[x];
         // count how many times a repeated task shows up, then find out which iteration of the repeated task we are on, to calculate extraFreq
-        int iterator = entropyMap.find(selectedTask);
-        if(entropyMap[iterator].size() > 1)
+        unordered_map<char, vector<int>>::iterator iterator = entropyMap.find(selectedTask);
+        if(iterator != entropyMap.end() && iterator->second.size() > 1)
         {
             //find which iteration of the repeated task we are on
             int counter = count(taskOrder.begin(), taskOrder.end(), taskOrder[x]); //keep track of how many times the repeated frequency shows up
@@ -55,7 +49,7 @@ vector<float> calculateEntropy(unordered_map<char, vector<int>> entropyMap, stri
                 {
                     //if the index of the current task matches the find() index, then we have found our extraFreq
                     int freqValue = tempString.find(tempString[x]);
-                    extraFreq = entropyMap[freqValue];
+                    extraFreq = iterator->second[freqValue];
                     counter = 0;
                 }
                 else
@@ -65,20 +59,12 @@ vector<float> calculateEntropy(unordered_map<char, vector<int>> entropyMap, stri
                 }
             }
         }
-        else { extraFreq = entropyMap[0]; } //if there is only 1 value in the task's vector, then just put that as the current task's frequency
+        else { extraFreq = iterator->second[0]; } //if there is only 1 value in the task's vector, then just put that as the current task's frequency
         nFreq = currFreq + extraFreq;
-        //impement currentTerm
-        if(frequencyArray[x].second == 0) { currentTerm = 0; }
-        else { currentTerm = frequencyArray[x].second * log2(; }
-        //implement newTerm
-        newTerm = (frequencyArray[x] + extraFreq) * log2(frequencyArray[x] + extraFreq);
         if(nFreq == extraFreq) { entropy = 0; } //for the first loop, the entropy will always be 0
         else { entropy = log2(nFreq) - ((log2(currFreq - currEntropy) * (currFreq) - currTerm + newTerm)/nFreq); }
         currFreq += extraFreq;
-        //implement freqArray
-        frequencyArray[x].second = extraFreq;
     }
-    
     return entropyHold;
 }
 
@@ -89,7 +75,7 @@ Entropy for CPU 1
 0.00 0.92 1.53 1.42
 */
 
-void output(string CPUcount, vector<float> answer)
+void output(unordered_map<char, vector<int>> allThreads, string taskOrderCount, string CPUcount)
 {
     string newString = "";
     for(int a = 0; a < CPUcount.size(); a++)
@@ -100,20 +86,22 @@ void output(string CPUcount, vector<float> answer)
             newString += "(";
             newString += CPUcount.substr(CPUcount[a]+2, 1);
             newString += ")";
-            newString += ",";
+            newString += ", ";
         }
     }
-    newString.pop_back(); //there will be a comma at the end, this is to take care of that
-    for(int b = 0; b < CPUcount.size(); b++)
+    newString.pop_back(); //there will be a space at the end, this is to take care of that
+    newString.pop_back(); //there will then be a comma, remove that as well
+    for(int counter = 0; counter < CPUcount.size(); counter++)
         {
             cout << "CPU " << counter << endl;
             cout << "Task scheduling information: " << newString << endl;
             cout << "Entropy for CPU " << counter << endl;
-            for(int c = 0; c < CPUcount.size()-1; c++)
+            vector<float> answer = calculateEntropy(allThreads, taskOrderCount);
+            for(int counterTwo = 0; counter < answer.size() - 1; counterTwo++)
             {
-                cout << answer[c] << " ";
+                cout << answer[counterTwo] << " ";
             }
-            cout << answer[answer.size() - 1];
+            cout << answer[answer.size()-1];
         }
 }
 
@@ -128,7 +116,7 @@ int main ()
     string toSplit = ""; //how we find each key and value by using substring
     string taskOrder = ""; //the order in which we will perform the tasks
     vector<string> taskOrderCount; //this holds the taskOrder for each CPU
-    vector<int> holding; //pushing each char and its frequency into a map, but since the map is a char and vector, we need a vector to hold the frequencies temporarily
+    
     //make a map of chars and vectors
     //each STRING is a thread, find a way to separate the tasks in all strings from all other strings
     unordered_map<char, vector<int>> entropyMap; //for each individual threaded CPU
@@ -136,23 +124,24 @@ int main ()
 
     //make this a while loop that initializes a new map when a string is inputted and processes the string into a map
     //once the string is processed, push the map into the vector of maps, and initialize the next map
-    do
+    while(true)
+    {
+        getline(cin, inputN);
+        if(inputN.empty()) { break; }
+        cpuCounter.push_back(inputN);
+        //group up the letters and their frequencies
+        for(int x = 0; x < inputN.length(); x++)
         {
-            getline(cin, inputN);
-            cpuCounter.push_back(inputN);
-            //group up the letters and their frequencies
-            for(int x = 0; x < inputN.length(); x++)
+            if(isalpha(inputN[x])) //if this is a valid task
             {
-                    if(isalpha(inputN[x])) //if this is a valid task
-                    {
-                        toFind = inputN[x];
-                        //taskOrder keeps task of what tasks we have so far
-                        taskOrder += toFind;
-                        //find the frequency (toCalc) for the task (toSplit)
-                        toSplit = inputN.substr(toFind+2,1);
-                        //convert toSplit (char) to toCalc (int)
-                        toCalc = stoi(toSplit);
-                    }
+                toFind = inputN[x];
+                //taskOrder keeps task of what tasks we have so far
+                taskOrder += toFind;
+                 //find the frequency (toCalc) for the task (toSplit)
+                 toSplit = inputN.substr(toFind+2,1);
+                 //convert toSplit (char) to toCalc (int)
+                 toCalc = stoi(toSplit);
+            }
                     //check if the key is in the map already
                     if(entropyMap.find(toFind) != entropyMap.end())
                     {
@@ -162,18 +151,18 @@ int main ()
                     else
                     {
                         //otherwise add a new key and value
-                        holding.push_back(toCalc);
-                        entropyMap.insert({toFind, holding});
-                        holding.pop_back();
+                        entropyMap.insert({toFind, {toCalc}});
                     }
             }
             allThreads.push_back(entropyMap);
             taskOrderCount.push_back(taskOrder);
             entropyMap.clear();
             taskOrderCount.pop_back();
-        }
+    }
     while(inputN != "");
     //for each INDIVIDUAL value in the map, calculate entropy
-    vector<float> answer = calculateEntropy(allThreads[0], taskOrderCount[0]); //use a for loop to loop through each thread
-    output(cpuCounter[0], answer); //use a for loop to loop through each thread
+    for(int y = 0; y < cpuCounter.size(); y++)
+    {
+        output(allThreads[y], taskOrderCount[y], cpuCounter[y]); //use a for loop to loop through each thread
+    }
 }
