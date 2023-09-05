@@ -1,4 +1,5 @@
 #include <iostream>
+#include <iomanip>
 #include <sstream>
 #include <fstream>
 #include <algorithm>
@@ -14,7 +15,7 @@
 
 using namespace std;
 
-struct threader //for threading
+struct thread //for threading
 {
     unordered_map<char, vector<int>> entMap; //the map containing the data for the CPU
     string tasOrd; //the order that this specific threaded CPU will follow
@@ -31,7 +32,11 @@ vector<float> calculateEntropy(unordered_map<char, vector<int>> entropyMap, stri
     float currEntropy = 0.00; //initally 0, converts to the most recently created entropy
     float entropy = 0.00; //the entropy for the selectedTask and the extraFrequency
     int nFreq = 0; //the sum of all previous frequencies + the frequency paired with the selectedTask
-
+    unordered_map<char, int> freqArray;
+    for(const auto &it : entropyMap)
+    {
+        freqArray.insert({it.first, 0});
+    }
     for(int x = 0; x < taskOrder.size(); x++) //for each task
     {
         //follow the tasks in the order they were given, below for loop is for if a task letter is repeated with multiple frequencies
@@ -62,8 +67,22 @@ vector<float> calculateEntropy(unordered_map<char, vector<int>> entropyMap, stri
         else { extraFreq = iterator->second[0]; } //if there is only 1 value in the task's vector, then just put that as the current task's frequency
         nFreq = currFreq + extraFreq;
         if(nFreq == extraFreq) { entropy = 0; } //for the first loop, the entropy will always be 0
-        else { entropy = log2(nFreq) - ((log2(currFreq - currEntropy) * (currFreq) - currTerm + newTerm)/nFreq); }
+        else
+        {
+            if( freqArray[selectedTask] == 0)
+            {
+                currTerm = 0;
+            }
+            else
+            {
+                currTerm = freqArray[selectedTask] * log2(freqArray[selectedTask]);
+            }
+            newTerm = (freqArray[selectedTask] + extraFreq) * log2(freqArray[selectedTask] + extraFreq);
+            entropy = log2(nFreq) - ((log2(currFreq - currEntropy) * (currFreq) - currTerm + newTerm)/nFreq);
+        }
+        entropyHold.push_back(entropy);
         currFreq += extraFreq;
+        freqArray[selectedTask] = extraFreq;
     }
     return entropyHold;
 }
@@ -75,7 +94,7 @@ Entropy for CPU 1
 0.00 0.92 1.53 1.42
 */
 
-void output(unordered_map<char, vector<int>> allThreads, string taskOrderCount, string CPUcount)
+void output(unordered_map<char, vector<int>> entropyMap, string taskOrder, string CPUcount)
 {
     string newString = "";
     for(int a = 0; a < CPUcount.size(); a++)
@@ -91,15 +110,15 @@ void output(unordered_map<char, vector<int>> allThreads, string taskOrderCount, 
     }
     newString.pop_back(); //there will be a space at the end, this is to take care of that
     newString.pop_back(); //there will then be a comma, remove that as well
-    for(int counter = 0; counter < CPUcount.size(); counter++)
+    for(int counter = 0; counter < taskOrder.size(); counter++)
     {
         cout << "CPU " << counter+1 << endl;
         cout << "Task scheduling information: " << newString << endl;
         cout << "Entropy for CPU " << counter+1 << endl;
-        vector<float> answer = calculateEntropy(allThreads, taskOrderCount);
+        vector<float> answer = calculateEntropy(entropyMap, taskOrder);
         for(int counterTwo = 0; counterTwo < answer.size() - 1; counterTwo++)
         {
-            cout << answer[counterTwo] << " ";
+            cout << fixed << setprecision(2) << answer[counterTwo] << " ";
         }
         cout << answer[answer.size()-1];
     }
