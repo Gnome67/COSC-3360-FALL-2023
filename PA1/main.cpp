@@ -33,9 +33,11 @@ vector<float> calculateEntropy(unordered_map<char, vector<int>> entropyMap, stri
     float entropy = 0.00; //the entropy for the selectedTask and the extraFrequency
     int nFreq = 0; //the sum of all previous frequencies + the frequency paired with the selectedTask
     unordered_map<char, int> freqArray;
+    unordered_map<char, int> keyIndices;
     for(const auto &it : entropyMap)
     {
         freqArray.insert({it.first, 0});
+        keyIndices.insert({it.first, 0});
     }
     for(int x = 0; x < taskOrder.size(); x++) //for each task
     {
@@ -45,44 +47,25 @@ vector<float> calculateEntropy(unordered_map<char, vector<int>> entropyMap, stri
         unordered_map<char, vector<int>>::iterator iterator = entropyMap.find(selectedTask);
         if(iterator != entropyMap.end() && iterator->second.size() > 1)
         {
-            //find which iteration of the repeated task we are on
-            int counter = count(taskOrder.begin(), taskOrder.end(), taskOrder[x]); //keep track of how many times the repeated frequency shows up
-            string tempString = taskOrder;
-            while(counter != 0)
-            {
-                if(tempString.find(tempString[x]) == x)
-                {
-                    //if the index of the current task matches the find() index, then we have found our extraFreq
-                    int freqValue = tempString.find(tempString[x]);
-                    extraFreq = iterator->second[freqValue];
-                    counter = 0;
-                }
-                else
-                {
-                    tempString = tempString.substr(tempString.find(tempString[x])+1);
-                    counter--;
-                }
-            }
+            vector<int> indices = iterator->second; // {2, 7}
+            int index = keyIndices[selectedTask]; //0 returns 2, 1 returns 7
+            extraFreq = indices[index]; //0 returns 2, 1 returns 7
+            keyIndices[selectedTask]++; //update the index by 1 for future calls
         }
         else { extraFreq = iterator->second[0]; } //if there is only 1 value in the task's vector, then just put that as the current task's frequency
         nFreq = currFreq + extraFreq;
         if(nFreq == extraFreq) { entropy = 0; } //for the first loop, the entropy will always be 0
         else
         {
-            if( freqArray[selectedTask] == 0)
-            {
-                currTerm = 0;
-            }
-            else
-            {
-                currTerm = freqArray[selectedTask] * log2(freqArray[selectedTask]);
-            }
+            if( freqArray[selectedTask] == 0) { currTerm = 0; }
+            else { currTerm = freqArray[selectedTask] * log2(freqArray[selectedTask]); }
             newTerm = (freqArray[selectedTask] + extraFreq) * log2(freqArray[selectedTask] + extraFreq);
-            entropy = log2(nFreq) - ((log2(currFreq - currEntropy) * (currFreq) - currTerm + newTerm)/nFreq);
+            entropy = log2(nFreq) - ((log2(currFreq) - currEntropy) * currFreq - currTerm + newTerm)/nFreq;
         }
         entropyHold.push_back(entropy);
         currFreq += extraFreq;
-        freqArray[selectedTask] = extraFreq;
+        freqArray[selectedTask] += extraFreq;
+        currEntropy = entropy;
     }
     return entropyHold;
 }
@@ -148,7 +131,7 @@ int main ()
         string taskOrder = ""; //the order in which we will perform the tasks
         unordered_map<char, vector<int>> entropyMap; //for each individual threaded CPU
         //group up the letters and their frequencies
-        for(int x = 0; x < inputN.length(); x += 2)
+        for(int x = 0; x < inputN.length(); x += 4)
         {
             if(isalpha(inputN[x]) && x + 1 < inputN.length()) //if this is a valid task
             {
@@ -178,4 +161,5 @@ int main ()
     {
         output(allThreads[y], taskOrderCount[y], cpuCounter[y]); //use a for loop to loop through each thread
     }
+    return 0;
 }
