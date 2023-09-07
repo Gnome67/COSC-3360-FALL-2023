@@ -10,8 +10,8 @@
 #include <unordered_map>
 #include <memory>
 #include <math.h>
-// #include <pthread.h>
-// #include <unistd.h>
+#include <pthread.h>
+#include <unistd.h>
 
 using namespace std;
 
@@ -77,7 +77,7 @@ Entropy for CPU 1
 0.00 0.92 1.53 1.42
 */
 
-void output(unordered_map<char, vector<int>> entropyMap, string taskOrder, string CPUcount)
+void output(unordered_map<char, vector<int>> entropyMap, string taskOrder, string CPUcount, int cpu)
 {
     string newString = "";
     for(int a = 0; a < CPUcount.size(); a++)
@@ -93,73 +93,63 @@ void output(unordered_map<char, vector<int>> entropyMap, string taskOrder, strin
     }
     newString.pop_back(); //there will be a space at the end, this is to take care of that
     newString.pop_back(); //there will then be a comma, remove that as well
-    for(int counter = 0; counter < taskOrder.size(); counter++)
-    {
-        cout << "CPU " << counter+1 << endl;
-        cout << "Task scheduling information: " << newString << endl;
-        cout << "Entropy for CPU " << counter+1 << endl;
-        vector<float> answer = calculateEntropy(entropyMap, taskOrder);
-        for(int counterTwo = 0; counterTwo < answer.size() - 1; counterTwo++)
-        {
-            cout << fixed << setprecision(2) << answer[counterTwo] << " ";
-        }
-        cout << answer[answer.size()-1];
-    }
+    cout << "CPU " << cpu+1 << endl;
+    cout << "Task scheduling information: " << newString << endl;
+    cout << "Entropy for CPU " << cpu+1 << endl;
+    vector<float> answer = calculateEntropy(entropyMap, taskOrder);
+    for(int counterTwo = 0; counterTwo < answer.size() - 1; counterTwo++) { cout << fixed << setprecision(2) << answer[counterTwo] << " "; }
+    cout << answer[answer.size()-1];
 }
 
 int main () 
 {
-    char toFind = ' '; //the character
-    int toCalc = 0; //the units of time for the character
-    char currFind = ' '; //the current character we are calculating the entropy for
-    int currCalc = 0; //the current units of time we are calculating the entropy for
-    vector<string> cpuCounter; //list of how many threads to create
-    string inputN = ""; //the moodle STDIN string
-    //make a map of chars and vectors
-    //each STRING is a thread, find a way to separate the tasks in all strings from all other strings
-
-    vector<string> taskOrderCount; //this holds the taskOrder for each CPU
-    vector<unordered_map<char, vector<int>>> allThreads; //holds all threaded CPUs
-    //make this a while loop that initializes a new map when a string is inputted and processes the string into a map
-    //once the string is processed, push the map into the vector of maps, and initialize the next map
+    char toFind = ' '; 
+    int toCalc = 0; 
+    char currFind = ' '; 
+    int currCalc = 0; 
+    vector<string> cpuCounter; 
+    string inputN = "";
+    vector<string> taskOrderCount; 
+    vector<unordered_map<char, vector<int>>> allThreads;
     while(true)
     {
 
         getline(cin, inputN);
         if(inputN.empty()) { break; }
         cpuCounter.push_back(inputN);
-        string taskOrder = ""; //the order in which we will perform the tasks
-        unordered_map<char, vector<int>> entropyMap; //for each individual threaded CPU
-        //group up the letters and their frequencies
+        string taskOrder = ""; 
+        unordered_map<char, vector<int>> entropyMap; 
         for(int x = 0; x < inputN.length(); x += 4)
         {
-            if(isalpha(inputN[x]) && x + 1 < inputN.length()) //if this is a valid task
+            if(isalpha(inputN[x]) && x + 1 < inputN.length())
             {
                 toFind = inputN[x];
-                //taskOrder keeps task of what tasks we have so far
                 taskOrder += toFind;
                 if(x + 2 < inputN.length()) { toCalc = inputN[x+2] - '0'; }
                 else { break; }
             }
-            //check if the key is in the map already
             if(entropyMap.find(toFind) != entropyMap.end())
             {
-                //if it is, add the corresponding value to the key's value-vector
                 entropyMap[toFind].push_back(toCalc);
             }
             else
             {
-                //otherwise add a new key and value
                 entropyMap.insert({toFind, {toCalc}});
             }
         }
         allThreads.push_back(entropyMap);
         taskOrderCount.push_back(taskOrder);
     }
-    //for each INDIVIDUAL value in the map, calculate entropy
-    for(int y = 0; y < cpuCounter.size(); y++)
+    if(cpuCounter.size() > 1)
     {
-        output(allThreads[y], taskOrderCount[y], cpuCounter[y]); //use a for loop to loop through each thread
+        int a = 0;
+        for(a = 0; a < cpuCounter.size() - 1; a++)
+        {
+            output(allThreads[a], taskOrderCount[a], cpuCounter[a], a);
+            cout << endl << endl;
+        }
+        output(allThreads[a], taskOrderCount[a], cpuCounter[a], a);
     }
+    else { output(allThreads[0], taskOrderCount[0], cpuCounter[0], 0); }
     return 0;
 }
