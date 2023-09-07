@@ -15,11 +15,30 @@
 
 using namespace std;
 
-struct thread //for threading
+//TODO make a for loop that iterates though all threads (that are given a fixed size of threads) and the for loop goes up to the size of threads
+//TODO then pass in that for loop counter into the instructions via struct
+
+struct threader //for threading
 {
     unordered_map<char, vector<int>> entMap; //the map containing the data for the CPU
     string tasOrd; //the order that this specific threaded CPU will follow
+    string inpStr; //the full unedited string 
+    int ord; //the number of the thread (and CPU)
+    threader(unordered_map<char, vector<int>> eM, string tO, string iS, int o) {
+        entMap = eM;
+        tasOrd = tO;
+        inpStr = iS;
+        ord = o;
+    }
 };
+
+void* threadInstruct(void* arg)
+{
+    threader* threadArg = (threader*) arg;
+    //TODO do the thing
+    output(threadArg->entMap, threadArg->tasOrd, threadArg->inpStr, threadArg->ord);
+    return NULL;
+}
 
 vector<float> calculateEntropy(unordered_map<char, vector<int>> entropyMap, string taskOrder)
 {
@@ -111,6 +130,8 @@ int main ()
     string inputN = "";
     vector<string> taskOrderCount; 
     vector<unordered_map<char, vector<int>>> allThreads;
+    vector<pthread_t> threadVector;
+    vector<threader*> pointerVector;
     while(true)
     {
 
@@ -137,19 +158,35 @@ int main ()
                 entropyMap.insert({toFind, {toCalc}});
             }
         }
+        threader* newThread = new threader(entropyMap, taskOrder, inputN, 0);
+        pthread_t myThread;
+        if(pthread_create(&myThread, NULL, threadInstruct, static_cast<void*> (newThread)))
+        {
+            cout << "OH NO IT FAILED";
+            return -1;
+        }
+        pointerVector.push_back(newThread);
+        threadVector.push_back(myThread);
         allThreads.push_back(entropyMap);
         taskOrderCount.push_back(taskOrder);
     }
-    if(cpuCounter.size() > 1)
+    // put this in threading function vvv
+    // if(cpuCounter.size() > 1)
+    // {
+    //     int a = 0;
+    //     for(a = 0; a < cpuCounter.size() - 1; a++)
+    //     {
+    //         output(allThreads[a], taskOrderCount[a], cpuCounter[a], a);
+    //         cout << endl << endl;
+    //     }
+    //     output(allThreads[a], taskOrderCount[a], cpuCounter[a], a);
+    // }
+    // else { output(allThreads[0], taskOrderCount[0], cpuCounter[0], 0); }
+
+    for(int c = 0; c < threadVector.size(); c++)
     {
-        int a = 0;
-        for(a = 0; a < cpuCounter.size() - 1; a++)
-        {
-            output(allThreads[a], taskOrderCount[a], cpuCounter[a], a);
-            cout << endl << endl;
-        }
-        output(allThreads[a], taskOrderCount[a], cpuCounter[a], a);
+        pthread_join(threadVector[c], NULL);
     }
-    else { output(allThreads[0], taskOrderCount[0], cpuCounter[0], 0); }
+    // TODO loop through the struct vector to return the thing
     return 0;
 }
