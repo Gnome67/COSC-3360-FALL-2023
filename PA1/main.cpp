@@ -15,16 +15,14 @@
 
 using namespace std;
 
-//TODO make a for loop that iterates though all threads (that are given a fixed size of threads) and the for loop goes up to the size of threads
-//TODO then pass in that for loop counter into the instructions via struct
-
 struct threader //for threading
 {
     unordered_map<char, vector<int>> entMap; //the map containing the data for the CPU
     string tasOrd; //the order that this specific threaded CPU will follow
     string inpStr; //the full unedited string 
     int ord; //the number of the thread (and CPU)
-    threader(unordered_map<char, vector<int>> eM, string tO, string iS, int o) {
+    vector<string> outVec; //the final entropy vector
+    threader(unordered_map<char, vector<int>> eM, string tO, string iS, int o) { //constructor
         entMap = eM;
         tasOrd = tO;
         inpStr = iS;
@@ -32,13 +30,7 @@ struct threader //for threading
     }
 };
 
-void* threadInstruct(void* arg)
-{
-    threader* threadArg = (threader*) arg;
-    //TODO do the thing
-    output(threadArg->entMap, threadArg->tasOrd, threadArg->inpStr, threadArg->ord);
-    return NULL;
-}
+//Function for calculating the entropy as specified in the algorithm
 
 vector<float> calculateEntropy(unordered_map<char, vector<int>> entropyMap, string taskOrder)
 {
@@ -51,21 +43,20 @@ vector<float> calculateEntropy(unordered_map<char, vector<int>> entropyMap, stri
     float currEntropy = 0.00; //initally 0, converts to the most recently created entropy
     float entropy = 0.00; //the entropy for the selectedTask and the extraFrequency
     int nFreq = 0; //the sum of all previous frequencies + the frequency paired with the selectedTask
-    unordered_map<char, int> freqArray;
-    unordered_map<char, int> keyIndices;
-    for(const auto &it : entropyMap)
+    unordered_map<char, int> freqArray; //the frequency Array
+    unordered_map<char, int> keyIndices; //for keys with multiple values, keep track of which value we are on
+    for(const auto &it : entropyMap) //construct freqAarray and keyIndices
     {
         freqArray.insert({it.first, 0});
         keyIndices.insert({it.first, 0});
     }
     for(int x = 0; x < taskOrder.size(); x++) //for each task
     {
-        //follow the tasks in the order they were given, below for loop is for if a task letter is repeated with multiple frequencies
         selectedTask = taskOrder[x];
-        // count how many times a repeated task shows up, then find out which iteration of the repeated task we are on, to calculate extraFreq
+        //follow the tasks in the order they were given, below iterator is for if a task letter is repeated with multiple frequencies and to count how many times a repeated task shows up, then find out which iteration of the repeated task we are on, to calculate extraFreq
         unordered_map<char, vector<int>>::iterator iterator = entropyMap.find(selectedTask);
         if(iterator != entropyMap.end() && iterator->second.size() > 1)
-        {
+        { // e.g. A has values 2, 7
             vector<int> indices = iterator->second; // {2, 7}
             int index = keyIndices[selectedTask]; //0 returns 2, 1 returns 7
             extraFreq = indices[index]; //0 returns 2, 1 returns 7
@@ -96,36 +87,47 @@ Entropy for CPU 1
 0.00 0.92 1.53 1.42
 */
 
-void output(unordered_map<char, vector<int>> entropyMap, string taskOrder, string CPUcount, int cpu)
+//Handles the output format as specified in instructions
+
+vector<string> output(unordered_map<char, vector<int>> entropyMap, string taskOrder, string CPUcount, int cpu)
 {
+    vector<string> outputVector;
     string newString = "";
-    for(int a = 0; a < CPUcount.size(); a++)
+    for(int a = 0; a < CPUcount.size(); a += 4)
     {
         if(isalpha(CPUcount[a]))
         {
             newString += CPUcount[a];
             newString += "(";
-            newString += CPUcount.substr(a + 2, 1);
+            newString += CPUcount[a+2];
             newString += ")";
             newString += ", ";
         }
     }
     newString.pop_back(); //there will be a space at the end, this is to take care of that
     newString.pop_back(); //there will then be a comma, remove that as well
-    cout << "CPU " << cpu+1 << endl;
-    cout << "Task scheduling information: " << newString << endl;
-    cout << "Entropy for CPU " << cpu+1 << endl;
+    outputVector.push_back("CPU " + to_string(cpu+1));
+    outputVector.push_back("Task scheduling information: " + newString);
+    outputVector.push_back("Entropy for CPU " + to_string(cpu+1));
     vector<float> answer = calculateEntropy(entropyMap, taskOrder);
-    for(int counterTwo = 0; counterTwo < answer.size() - 1; counterTwo++) { cout << fixed << setprecision(2) << answer[counterTwo] << " "; }
-    cout << answer[answer.size()-1];
+    for(int counterTwo = 0; counterTwo < answer.size(); counterTwo++) { outputVector.push_back(to_string(answer[counterTwo])); }
+    return outputVector;
+}
+
+//The threaded function telling the threads what to do
+
+void* threadInstruct(void* arg)
+{
+    threader* threadArg = (threader*) arg;
+    //TODO do the thing
+    threadArg->outVec = output(threadArg->entMap, threadArg->tasOrd, threadArg->inpStr, threadArg->ord);
+    return NULL;
 }
 
 int main () 
 {
     char toFind = ' '; 
-    int toCalc = 0; 
-    char currFind = ' '; 
-    int currCalc = 0; 
+    int toCalc = 0;
     vector<string> cpuCounter; 
     string inputN = "";
     vector<string> taskOrderCount; 
@@ -134,7 +136,6 @@ int main ()
     vector<threader*> pointerVector;
     while(true)
     {
-
         getline(cin, inputN);
         if(inputN.empty()) { break; }
         cpuCounter.push_back(inputN);
@@ -158,19 +159,21 @@ int main ()
                 entropyMap.insert({toFind, {toCalc}});
             }
         }
-        threader* newThread = new threader(entropyMap, taskOrder, inputN, 0);
+        allThreads.push_back(entropyMap);
+        taskOrderCount.push_back(taskOrder);
+    }
+    for(int a = 0; a < cpuCounter.size(); a++) //variable-A threads
+    {
+        threader* newThread = new threader(allThreads[a], taskOrderCount[a], cpuCounter[a], a);
         pthread_t myThread;
         if(pthread_create(&myThread, NULL, threadInstruct, static_cast<void*> (newThread)))
         {
-            cout << "OH NO IT FAILED";
+            cout << "ERROR";
             return -1;
         }
         pointerVector.push_back(newThread);
         threadVector.push_back(myThread);
-        allThreads.push_back(entropyMap);
-        taskOrderCount.push_back(taskOrder);
     }
-    // put this in threading function vvv
     // if(cpuCounter.size() > 1)
     // {
     //     int a = 0;
@@ -182,11 +185,52 @@ int main ()
     //     output(allThreads[a], taskOrderCount[a], cpuCounter[a], a);
     // }
     // else { output(allThreads[0], taskOrderCount[0], cpuCounter[0], 0); }
-
     for(int c = 0; c < threadVector.size(); c++)
     {
         pthread_join(threadVector[c], NULL);
     }
-    // TODO loop through the struct vector to return the thing
+    for(int d = 0; d < pointerVector.size()-1; d++)
+    {
+        for(int e = 0; e < 3 /*pointerVector[d]->outVec.size()*/; e++)
+        {
+            cout << pointerVector[d]->outVec[e] << endl;
+        }
+        for(int e = 3; e < pointerVector[d]->outVec.size()-1; e++)
+        {
+            cout << pointerVector[d]->outVec[e].substr(0, 4) << " ";
+        }
+        cout << pointerVector[d]->outVec[pointerVector[d]->outVec.size()-1].substr(0, 4);
+        cout << endl << endl;
+    }
+    for(int e = 0; e < 3; e++)
+    {
+        cout << pointerVector[pointerVector.size()-1]->outVec[e] << endl;
+    }
+    for(int e = 3; e < pointerVector[pointerVector.size()-1]->outVec.size()-1; e++)
+    {
+        cout << pointerVector[pointerVector.size()-1]->outVec[e].substr(0, 4) << " ";
+    }
+    cout << pointerVector[pointerVector.size()-1]->outVec[pointerVector[pointerVector.size()-1]->outVec.size()-1].substr(0, 4);
+
+    //freeing up memory
+    inputN.clear();
+    for(int x = 0; x < allThreads.size(); x++)
+    {
+        allThreads[x].clear();
+    }
+    allThreads.clear();
+    allThreads.shrink_to_fit();
+    cpuCounter.clear();
+    cpuCounter.shrink_to_fit();
+    taskOrderCount.clear();
+    taskOrderCount.shrink_to_fit();
+    threadVector.clear();
+    threadVector.shrink_to_fit();
+    for(threader* threaderPtr : pointerVector)
+    {
+        delete threaderPtr;
+    }
+    pointerVector.clear();
+    pointerVector.shrink_to_fit();
     return 0;
 }
