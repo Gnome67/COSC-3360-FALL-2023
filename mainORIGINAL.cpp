@@ -134,9 +134,8 @@ int main ()
     vector<unordered_map<char, vector<int>>> allThreads;
     vector<pthread_t> threadVector;
     vector<threader*> pointerVector;
-    while(true)
+    while(getline(cin, inputN))
     {
-        getline(cin, inputN);
         if(inputN.empty()) { break; }
         cpuCounter.push_back(inputN);
         string taskOrder = ""; 
