@@ -196,7 +196,7 @@ int main ()
         }
         for(int e = 3; e < pointerVector[d]->outVec.size()-1; e++)
         {
-            cout << pointerVector[d]->outVec[e].substr(0, 4) << " ";
+            cout << fixed << setprecision(2) << stod(pointerVector[d]->outVec[e]) << " ";
         }
         cout << pointerVector[d]->outVec[pointerVector[d]->outVec.size()-1].substr(0, 4);
         cout << endl << endl;
@@ -207,9 +207,9 @@ int main ()
     }
     for(int e = 3; e < pointerVector[pointerVector.size()-1]->outVec.size()-1; e++)
     {
-        cout << pointerVector[pointerVector.size()-1]->outVec[e].substr(0, 4) << " ";
+        cout << fixed << setprecision(2) << stod(pointerVector[pointerVector.size()-1]->outVec[e]) << " ";
     }
-    cout << pointerVector[pointerVector.size()-1]->outVec[pointerVector[pointerVector.size()-1]->outVec.size()-1].substr(0, 4);
+    cout << fixed << setprecision(2) << stod(pointerVector[pointerVector.size()-1]->outVec[pointerVector[pointerVector.size()-1]->outVec.size()-1]);
 
     //freeing up memory
     inputN.clear();
