@@ -70,7 +70,7 @@ vector<float> calculateEntropy(unordered_map<char, vector<int>> entropyMap, stri
             if( freqArray[selectedTask] == 0) { currTerm = 0; }
             else { currTerm = freqArray[selectedTask] * log2(freqArray[selectedTask]); }
             newTerm = (freqArray[selectedTask] + extraFreq) * log2(freqArray[selectedTask] + extraFreq);
-            entropy = log2(nFreq) - ((log2(currFreq) - currEntropy) * currFreq - currTerm + newTerm)/nFreq;
+            entropy = abs(log2(nFreq) - ((log2(currFreq) - currEntropy) * currFreq - currTerm + newTerm)/nFreq);
         }
         entropyHold.push_back(entropy);
         currFreq += extraFreq;
