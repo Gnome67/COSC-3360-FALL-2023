@@ -81,10 +81,10 @@ vector<float> calculateEntropy(unordered_map<char, vector<int>> entropyMap, stri
             newTerm = (freqArray[selectedTask] + extraFreq) * log2(freqArray[selectedTask] + extraFreq);
             entropy = log2(nFreq) - ((log2(currFreq) - currEntropy) * currFreq - currTerm + newTerm)/nFreq;
         }
-        entropyHold.push_back(entropy);
+        entropyHold.push_back(abs(entropy));
         currFreq += extraFreq;
         freqArray[selectedTask] += extraFreq;
-        currEntropy = entropy;
+        currEntropy = abs(entropy);
     }
     return entropyHold;
 }
