@@ -50,9 +50,9 @@ vector<float> calculateEntropy(vector<pair<char, int>> entropyVector)
     }
     for(int x = 0; x < entropyVector.size(); x++) //for each task
     {
-        selectedTask = entropyVector[x].first;
-        extraFreq = entropyVector[x].second;
-        //if there is only 1 value in the task's vector, then just put that as the current task's frequency
+        selectedTask = entropyVector[x].first; //initialize selectedTask
+        extraFreq = entropyVector[x].second; //initialize extraFrequency
+        //begin the algorithm
         nFreq = currFreq + extraFreq;
         if(nFreq == extraFreq) { entropy = 0; } //for the first loop, the entropy will always be 0
         else
@@ -91,8 +91,7 @@ vector<string> output(vector<pair<char, int>> entropyVector, string CPUcount, in
         newString += x;
         newString += "(";
         newString += to_string(y);
-        newString += ")";
-        newString += ", ";
+        newString += "), ";
     }
     newString.pop_back(); //there will be a space at the end, this is to take care of that
     newString.pop_back(); //there will then be a comma, remove that as well
@@ -115,11 +114,12 @@ void* threadInstruct(void* arg)
 
 int main () 
 {
-    vector<string> cpuCounter; 
-    string inputN = "";
-    vector<pthread_t> threadVector;
-    vector<threader*> pointerVector;
-    vector<vector<pair<char, int>>> allThreads;
+    vector<string> cpuCounter; //keeps track of how many threads to create, and contains the raw input strings
+    string inputN = ""; //the input string
+    vector<pthread_t> threadVector; //vector of the threads, since we don't know how many threads there will be
+    vector<threader*> pointerVector; //vector of structs so each thread has its own struct
+    vector<vector<pair<char, int>>> allThreads; //multiple strings means multiple vector pairs
+    //process input
     while(getline(cin, inputN))
     {
         if(inputN.empty()) { break; }
@@ -128,12 +128,10 @@ int main ()
         vector<pair<char,int>> entropyVector;
         char toFind = ' '; 
         int toCalc = 0;
-        while(s >> toFind >> toCalc)
-        {
-            entropyVector.push_back(make_pair(toFind, toCalc));
-        }
+        while(s >> toFind >> toCalc) { entropyVector.push_back(make_pair(toFind, toCalc)); }
         allThreads.push_back(entropyVector);
     }
+    //create threads
     for(int a = 0; a < cpuCounter.size(); a++) //variable-A threads
     {
         threader* newThread = new threader(allThreads[a], cpuCounter[a], a);
@@ -146,31 +144,17 @@ int main ()
         pointerVector.push_back(newThread);
         threadVector.push_back(myThread);
     }
-    for(int c = 0; c < threadVector.size(); c++)
-    {
-        pthread_join(threadVector[c], NULL);
-    }
+    // join threads
+    for(int c = 0; c < threadVector.size(); c++) { pthread_join(threadVector[c], NULL); }
+    //output information
     for(int d = 0; d < pointerVector.size()-1; d++)
     {
-        for(int e = 0; e < 3; e++)
-        {
-            cout << pointerVector[d]->outVec[e] << endl;
-        }
-        for(int e = 3; e < pointerVector[d]->outVec.size()-1; e++)
-        {
-            cout << fixed << setprecision(2) << stod(pointerVector[d]->outVec[e]) << " ";
-        }
-        cout << fixed << setprecision(2) << stod(pointerVector[d]->outVec[pointerVector[d]->outVec.size()-1]);
-        cout << endl << endl;
+        for(int e = 0; e < 3; e++) { cout << pointerVector[d]->outVec[e] << endl; }
+        for(int e = 3; e < pointerVector[d]->outVec.size()-1; e++) { cout << fixed << setprecision(2) << stod(pointerVector[d]->outVec[e]) << " "; }
+        cout << fixed << setprecision(2) << stod(pointerVector[d]->outVec[pointerVector[d]->outVec.size()-1]) << endl << endl;
     }
-    for(int e = 0; e < 3; e++)
-    {
-        cout << pointerVector[pointerVector.size()-1]->outVec[e] << endl;
-    }
-    for(int e = 3; e < pointerVector[pointerVector.size()-1]->outVec.size()-1; e++)
-    {
-        cout << fixed << setprecision(2) << stod(pointerVector[pointerVector.size()-1]->outVec[e]) << " ";
-    }
+    for(int e = 0; e < 3; e++) { cout << pointerVector[pointerVector.size()-1]->outVec[e] << endl; }
+    for(int e = 3; e < pointerVector[pointerVector.size()-1]->outVec.size()-1; e++) { cout << fixed << setprecision(2) << stod(pointerVector[pointerVector.size()-1]->outVec[e]) << " "; }
     cout << fixed << setprecision(2) << stod(pointerVector[pointerVector.size()-1]->outVec[pointerVector[pointerVector.size()-1]->outVec.size()-1]);
     return 0;
 }
