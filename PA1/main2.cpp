@@ -30,16 +30,16 @@ struct threader //for threading
 
 //Function for calculating the entropy as specified in the algorithm
 
-vector<float> calculateEntropy(vector<pair<char, int>> entropyVector)
+vector<double> calculateEntropy(vector<pair<char, int>> entropyVector)
 {
-    vector<float> entropyHold;
+    vector<double> entropyHold;
     char selectedTask = ' '; //the current task we are selecting the entropy for
     int extraFreq = 0; //the frequencies paired with the selectedTask
-    float currTerm = 0.00; //currentTerm = freq[selectedTask] * log2(freq[selectedTask])
-    float newTerm = 0.00; //newTerm = (freq[selectedTask] + extraFreq) * log2(freq[selectedTask] + extraFreq)
+    double currTerm = 0.00; //currentTerm = freq[selectedTask] * log2(freq[selectedTask])
+    double newTerm = 0.00; //newTerm = (freq[selectedTask] + extraFreq) * log2(freq[selectedTask] + extraFreq)
     int currFreq = 0; //the sum of all previous frequencies
-    float currEntropy = 0.00; //initally 0, converts to the most recently created entropy
-    float entropy = 0.00; //the entropy for the selectedTask and the extraFrequency
+    double currEntropy = 0.00; //initally 0, converts to the most recently created entropy
+    double entropy = 0.00; //the entropy for the selectedTask and the extraFrequency
     int nFreq = 0; //the sum of all previous frequencies + the frequency paired with the selectedTask
     unordered_map<char, int> freqArray; //the frequency Array
     unordered_map<char, int> keyIndices; //for keys with multiple values, keep track of which value we are on
@@ -60,7 +60,7 @@ vector<float> calculateEntropy(vector<pair<char, int>> entropyVector)
             if( freqArray[selectedTask] == 0) { currTerm = 0; }
             else { currTerm = freqArray[selectedTask] * log2(freqArray[selectedTask]); }
             newTerm = (freqArray[selectedTask] + extraFreq) * log2(freqArray[selectedTask] + extraFreq);
-            entropy = abs(log2(nFreq) - ((log2(currFreq) - currEntropy) * currFreq - currTerm + newTerm)/nFreq);
+            entropy = log2(nFreq) - ((log2(currFreq) - currEntropy) * currFreq - currTerm + newTerm)/nFreq;
         }
         entropyHold.push_back(entropy);
         currFreq += extraFreq;
@@ -98,7 +98,7 @@ vector<string> output(vector<pair<char, int>> entropyVector, string CPUcount, in
     outputVector.push_back("CPU " + to_string(cpu+1));
     outputVector.push_back("Task scheduling information: " + newString);
     outputVector.push_back("Entropy for CPU " + to_string(cpu+1));
-    vector<float> answer = calculateEntropy(entropyVector);
+    vector<double> answer = calculateEntropy(entropyVector);
     for(int counterTwo = 0; counterTwo < answer.size(); counterTwo++) { outputVector.push_back(to_string(answer[counterTwo])); }
     return outputVector;
 }
