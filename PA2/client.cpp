@@ -25,39 +25,30 @@ struct threader //for threading
     string inpStr; //the full unedited string 
     int ord; //the number of the thread (and CPU)
     string outStr; //the final entropy string
-    threader(vector<pair<char, int>> eV, string iS, int o) { //constructor
+    char* serverIP; // argv[1]
+    int portno; //argv[2]
+    threader(vector<pair<char, int>> eV, string iS, int o, int p, char* sIP) { //constructor
         entVec = eV;
         inpStr = iS;
         ord = o;
+        portno = p;
+        serverIP = sIP;
     }
 };
 
-//dont forget to call
-//pthread create and join
-
-int main(int argc, char *argv[])
+void* threadInstruct(void* arg)
 {
-    int sockfd, portno, n;
-    string input = "", buffer = "";
-    vector<pthread_t> threadVector;
-    vector<threader*> structVector;
-    vector<vector<pair<char, int>>> allThreads;
     struct sockaddr_in serv_addr;
     struct hostent *server;
-
-    if (argc != 3) 
-    {
-       cerr << "usage " << argv[0] << " hostname port" << endl;
-       exit(0);
-    }
-    portno = atoi(argv[2]);
-    sockfd = socket(AF_INET, SOCK_STREAM, 0);
-    if (sockfd < 0) 
+    threader* arg_ptr = (threader*) arg;
+    portno = arg_ptr->portno;
+    int sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    if (sockfd < 0)
     {
         cerr << "ERROR opening socket" << endl;
         exit(0);
     }
-    server = gethostbyname(argv[1]);
+    server = gethostbyname(arg_ptr->serverIP);
     if (server == NULL) {
         cerr << "ERROR, no such host" << endl;
         exit(0);
@@ -71,28 +62,19 @@ int main(int argc, char *argv[])
         cerr << "ERROR connecting" << endl;
         exit(0);
     }
-    // cout << "Please enter the message: ";
-    // getline(cin,buffer);
-    while(getline(cin, input))
-    {
-        if(input.empty()) { break; }
-        buffer = buffer + input + '\n';
-    }
+    //
     int msgSize = sizeof(buffer);
-    n = write(sockfd,&msgSize,sizeof(int));
-    if (n < 0) 
+    if (write(sockfd,&msgSize,sizeof(int))) 
     {
         cerr << "ERROR writing to socket" << endl;
         exit(0);
     }
-    n = write(sockfd,buffer.c_str(),msgSize);
-    if (n < 0) 
+    if (write(sockfd,buffer.c_str(),msgSize)) 
     {
         cerr << "ERROR writing to socket" << endl;
         exit(0);
     }
-    n = read(sockfd,&msgSize,sizeof(int));
-    if (n < 0) 
+    if (read(sockfd,&msgSize,sizeof(int))) 
     {
         cerr << "ERROR reading from socket" << endl;
         exit(0);
@@ -107,7 +89,47 @@ int main(int argc, char *argv[])
     }
     buffer = tempBuffer;
     delete [] tempBuffer;
-    cout << "Message from server: "<< buffer << endl;
     close(sockfd);
+    return NULL;
+}
+
+int main(int argc, char *argv[])
+{
+    // int sockfd, portno, n;
+    string input = "", buffer = "";
+    vector<string> cpuCounter;
+    vector<pthread_t> threadVector;
+    vector<threader*> structVector;
+    vector<vector<pair<char, int>>> allThreads;
+    if (argc != 3) 
+    {
+       cerr << "usage " << argv[0] << " hostname port" << endl;
+       exit(0);
+    }
+    // cout << "Please enter the message: ";
+    // getline(cin,buffer);
+    while(getline(cin, input))
+    {
+        if(input.empty()) { break; }
+        buffer = buffer + input + '\n';
+        cpuCounter.push_back(input);
+    }
+    //pthread create
+    for(int a = 0; a < cpuCounter.size(); a++) //variable-A threads
+    {
+        threader* newThread = new threader(allThreads[a], cpuCounter[a], a, argv[2], argv[1]);
+        pthread_t myThread;
+        if(pthread_create(&myThread, NULL, threadInstruct, static_cast<void*> (newThread)))
+        {
+            cout << "ERROR";
+            return -1;
+        }
+        pointerVector.push_back(newThread);
+        threadVector.push_back(myThread);
+    }
+    //pthread join
+    for(int b = 0; b < threadVector.size(); b++) { pthread_join(threadVector[b], NULL); }
+    //output
+    cout << "Message from server: "<< buffer << endl;
     return 0;
 }
