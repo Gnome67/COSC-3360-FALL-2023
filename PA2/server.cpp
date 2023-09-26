@@ -10,11 +10,7 @@
 
 using namespace std;
 
-void fireman(int)
-{
-   while (waitpid(-1, NULL, WNOHANG) > 0)
-      ;
-}
+void fireman(int) { while (waitpid(-1, NULL, WNOHANG) > 0) {;} }
 
 vector<double> calculateEntropy(vector<pair<char, int>> entropyVector)
 {
