@@ -38,8 +38,7 @@ struct threader //for threading
 int main(int argc, char *argv[])
 {
     int sockfd, portno, n;
-    string buffer = "";
-    vector<string> bufferVector;
+    string input = "", buffer = "";
     vector<pthread_t> threadVector;
     vector<threader*> structVector;
     vector<vector<pair<char, int>>> allThreads;
@@ -74,16 +73,10 @@ int main(int argc, char *argv[])
     }
     // cout << "Please enter the message: ";
     // getline(cin,buffer);
-    while(getline(cin, buffer))
+    while(getline(cin, input))
     {
-        if(buffer.empty()) { break; }
-        bufferVector.push_back(buffer);
-        stringstream s(buffer);
-        vector<pair<char,int>> entropyVector;
-        char toFind = ' '; 
-        int toCalc = 0;
-        while(s >> toFind >> toCalc) { entropyVector.push_back(make_pair(toFind, toCalc)); }
-        allThreads.push_back(entropyVector);
+        if(input.empty()) { break; }
+        buffer = buffer + input + '\n';
     }
     int msgSize = sizeof(buffer);
     n = write(sockfd,&msgSize,sizeof(int));
