@@ -56,6 +56,24 @@ vector<double> calculateEntropy(vector<pair<char, int>> entropyVector)
     return entropyHold;
 }
 
+string output(vector<pair<char, int>> entropyVector, string CPUcount, int cpu)
+{
+    string outputString = "CPU " + to_string(cpu+1), entropyString = "";
+    outputString += "\nTask scheduling information: ";
+    stringstream s(CPUcount);
+    char x; int y;
+    while(s >> x >> y) { outputString = outputString + x + "(" + to_string(y) + "), "; }
+    outputString.pop_back(); //remove ending space
+    outputString.pop_back(); //remove ending comma
+    outputString += "\nEntropy for CPU " + to_string(cpu+1)+"\n";
+    vector<double> answer = calculateEntropy(entropyVector);
+    ostringstream entropyStream;
+    for(const double& num : answer) { entropyStream << fixed << setprecision(2) << num << " "; }
+    outputString += entropyStream.str();
+    entropyString.pop_back();
+    return outputString;
+}
+
 int main(int argc, char *argv[])
 {
    int sockfd, newsockfd, portno, clilen;
