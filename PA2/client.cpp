@@ -27,12 +27,12 @@ struct threader //for threading
     string outStr; //the final entropy string
     char* serverIP; // argv[1]
     int portno; //argv[2]
-    threader(vector<pair<char, int>> eV, string iS, int o, int p, char* sIP) { //constructor
+    threader(vector<pair<char, int>> eV, string iS, int o, char* sIP, int p) { //constructor
         entVec = eV;
         inpStr = iS;
         ord = o;
-        portno = p;
         serverIP = sIP;
+        portno = p;
     }
 };
 
@@ -117,7 +117,7 @@ int main(int argc, char *argv[])
     //pthread create
     for(int a = 0; a < cpuCounter.size(); a++) //variable-A threads
     {
-        threader* newThread = new threader(allThreads[a], cpuCounter[a], a, argv[2], argv[1]);
+        threader* newThread = new threader(allThreads[a], cpuCounter[a], a, argv[1], argv[2]);
         pthread_t myThread;
         if(pthread_create(&myThread, NULL, threadInstruct, static_cast<void*> (newThread)))
         {
