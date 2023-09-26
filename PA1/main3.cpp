@@ -70,13 +70,6 @@ vector<double> calculateEntropy(vector<pair<char, int>> entropyVector)
     return entropyHold;
 }
 
-/*
-CPU 1
-Task scheduling information: A(2), B(4), C(3), A(7)
-Entropy for CPU 1
-0.00 0.92 1.53 1.42
-*/
-
 //Handles the output format as specified in instructions
 
 string output(vector<pair<char, int>> entropyVector, string CPUcount, int cpu)
