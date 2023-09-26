@@ -78,14 +78,12 @@ int main(int argc, char *argv[])
 {
    int sockfd, newsockfd, portno, clilen;
    struct sockaddr_in serv_addr, cli_addr;
-
    // Check the commandline arguments
    if (argc != 2)
    {
       cerr << "Port not provided" << endl;
       exit(0);
    }
-
    // Create the socket
    sockfd = socket(AF_INET, SOCK_STREAM, 0);
    if (sockfd < 0)
@@ -93,25 +91,21 @@ int main(int argc, char *argv[])
       cerr << "Error opening socket" << endl;
       exit(0);
    }
-
    // Populate the sockaddr_in structure
    bzero((char *)&serv_addr, sizeof(serv_addr));
    portno = atoi(argv[1]);
    serv_addr.sin_family = AF_INET;
    serv_addr.sin_addr.s_addr = INADDR_ANY;
    serv_addr.sin_port = htons(portno);
-
    // Bind the socket with the sockaddr_in structure
    if (bind(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
    {
       cerr << "Error binding" << endl;
       exit(0);
    }
-
    // Set the max number of concurrent connections
    listen(sockfd, 5);
    clilen = sizeof(cli_addr);
-
    // Accept a new connection
    newsockfd = accept(sockfd, (struct sockaddr *)&cli_addr, (socklen_t *)&clilen);
    if (newsockfd < 0)
