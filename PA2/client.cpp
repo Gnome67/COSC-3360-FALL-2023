@@ -24,7 +24,7 @@ struct threader //for threading
     vector<pair<char, int>> entVec; //the map containing the data for the CPU
     string inpStr; //the full unedited string 
     int ord; //the number of the thread (and CPU)
-    vector<string> outVec; //the final entropy vector
+    string outStr; //the final entropy string
     threader(vector<pair<char, int>> eV, string iS, int o) { //constructor
         entVec = eV;
         inpStr = iS;
