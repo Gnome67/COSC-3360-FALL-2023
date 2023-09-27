@@ -16,6 +16,9 @@
 #include <netinet/in.h>
 #include <netdb.h>
 #include <pthread.h>
+#include <sys/wait.h>
+#include <stdlib.h>
+#include <string.h>
 
 using namespace std;
 
@@ -26,9 +29,9 @@ struct threader //for threading
     int ord; //the number of the thread (and CPU)
     string outStr; //the final entropy string
     char* serverIP; // argv[1]
-    int portno; //argv[2]
-    threader(vector<pair<char, int>> eV, string iS, int o, char* sIP, int p) { //constructor
-        entVec = eV;
+    char* portno; //argv[2]
+    threader(/*vector<pair<char, int>> eV,*/ string iS, int o, char* sIP, char* p) { //constructor
+        // entVec = eV;
         inpStr = iS;
         ord = o;
         serverIP = sIP;
@@ -38,11 +41,13 @@ struct threader //for threading
 
 void* threadInstruct(void* arg)
 {
+    //input
     struct sockaddr_in serv_addr;
     struct hostent *server;
     threader* arg_ptr = (threader*) arg;
-    portno = arg_ptr->portno;
+    int portno = atoi(arg_ptr->portno);
     int sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    string buffer = arg_ptr->inpStr;
     if (sockfd < 0)
     {
         cerr << "ERROR opening socket" << endl;
@@ -63,7 +68,7 @@ void* threadInstruct(void* arg)
         cerr << "ERROR connecting" << endl;
         exit(0);
     }
-    //
+    //output
     int msgSize = sizeof(buffer);
     if (write(sockfd,&msgSize,sizeof(int))) 
     {
@@ -82,8 +87,7 @@ void* threadInstruct(void* arg)
     }
     char *tempBuffer = new char[msgSize+1];
     bzero(tempBuffer,msgSize+1);
-    n = read(sockfd,tempBuffer,msgSize);
-    if (n < 0) 
+    if (read(sockfd,tempBuffer,msgSize)) 
     {
         cerr << "ERROR reading from socket" << endl;
         exit(0);
@@ -96,7 +100,7 @@ void* threadInstruct(void* arg)
 
 int main(int argc, char *argv[])
 {
-    string input = "", buffer = "";
+    string input = "";
     vector<string> cpuCounter;
     vector<pthread_t> threadVector;
     vector<threader*> structVector;
@@ -110,25 +114,23 @@ int main(int argc, char *argv[])
     while(getline(cin, input))
     {
         if(input.empty()) { break; }
-        buffer = buffer + input + '\n';
         cpuCounter.push_back(input);
     }
     //pthread create
     for(int a = 0; a < cpuCounter.size(); a++) //variable-A threads
     {
-        threader* newThread = new threader(/*allThreads[a],*/ cpuCounter[a], a, argv[1], argv[2]);
+        threader* newThread = new threader(/*allThreads[a],*/cpuCounter[a], a, argv[1], argv[2]);
         pthread_t myThread;
         if(pthread_create(&myThread, NULL, threadInstruct, static_cast<void*> (newThread)))
         {
             cout << "ERROR";
             return -1;
         }
-        pointerVector.push_back(newThread);
+        structVector.push_back(newThread);
         threadVector.push_back(myThread);
     }
     //pthread join
     for(int b = 0; b < threadVector.size(); b++) { pthread_join(threadVector[b], NULL); }
     //output
-    cout << "Message from server: "<< buffer << endl;
     return 0;
 }
