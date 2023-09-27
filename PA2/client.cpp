@@ -21,7 +21,7 @@ using namespace std;
 
 struct threader //for threading
 {
-    vector<pair<char, int>> entVec; //the map containing the data for the CPU
+    // vector<pair<char, int>> entVec; //the map containing the data for the CPU
     string inpStr; //the full unedited string 
     int ord; //the number of the thread (and CPU)
     string outStr; //the final entropy string
@@ -49,7 +49,8 @@ void* threadInstruct(void* arg)
         exit(0);
     }
     server = gethostbyname(arg_ptr->serverIP);
-    if (server == NULL) {
+    if (server == NULL)
+    {
         cerr << "ERROR, no such host" << endl;
         exit(0);
     }
@@ -95,12 +96,10 @@ void* threadInstruct(void* arg)
 
 int main(int argc, char *argv[])
 {
-    // int sockfd, portno, n;
     string input = "", buffer = "";
     vector<string> cpuCounter;
     vector<pthread_t> threadVector;
     vector<threader*> structVector;
-    vector<vector<pair<char, int>>> allThreads;
     if (argc != 3) 
     {
        cerr << "usage " << argv[0] << " hostname port" << endl;
@@ -117,7 +116,7 @@ int main(int argc, char *argv[])
     //pthread create
     for(int a = 0; a < cpuCounter.size(); a++) //variable-A threads
     {
-        threader* newThread = new threader(allThreads[a], cpuCounter[a], a, argv[1], argv[2]);
+        threader* newThread = new threader(/*allThreads[a],*/ cpuCounter[a], a, argv[1], argv[2]);
         pthread_t myThread;
         if(pthread_create(&myThread, NULL, threadInstruct, static_cast<void*> (newThread)))
         {
