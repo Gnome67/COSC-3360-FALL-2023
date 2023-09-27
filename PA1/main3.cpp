@@ -42,12 +42,7 @@ vector<double> calculateEntropy(vector<pair<char, int>> entropyVector)
     double entropy = 0.00; //the entropy for the selectedTask and the extraFrequency
     int nFreq = 0; //the sum of all previous frequencies + the frequency paired with the selectedTask
     unordered_map<char, int> freqArray; //the frequency Array
-    unordered_map<char, int> keyIndices; //for keys with multiple values, keep track of which value we are on
-    for(const auto &it : entropyVector) //construct freqAarray and keyIndices
-    {
-        freqArray.insert({it.first, 0});
-        keyIndices.insert({it.first, 0});
-    }
+    for(const auto &it : entropyVector) { freqArray.insert({it.first, 0}); }
     for(int x = 0; x < entropyVector.size(); x++) //for each task
     {
         selectedTask = entropyVector[x].first; //initialize selectedTask
