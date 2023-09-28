@@ -81,7 +81,7 @@ string output(vector<pair<char, int>> entropyVector, string CPUcount, int cpu)
     ostringstream entropyStream;
     for(const double& num : answer) { entropyStream << fixed << setprecision(2) << num << " "; }
     outputString += entropyStream.str();
-    entropyString.pop_back();
+    outputString.pop_back();
     return outputString;
 }
 
