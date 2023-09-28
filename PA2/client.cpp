@@ -63,35 +63,15 @@ void* threadInstruct(void* arg)
     serv_addr.sin_family = AF_INET;
     bcopy((char *)server->h_addr, (char *)&serv_addr.sin_addr.s_addr, server->h_length);
     serv_addr.sin_port = htons(portno);
-    if (connect(sockfd,(struct sockaddr *)&serv_addr,sizeof(serv_addr)) < 0) 
-    {
-        cerr << "ERROR connecting" << endl;
-        exit(0);
-    }
+    if (connect(sockfd,(struct sockaddr *)&serv_addr,sizeof(serv_addr)) < 0) { cerr << "ERROR connecting" << endl; exit(0); }
     //output
     int msgSize = sizeof(buffer);
-    if (write(sockfd,&msgSize,sizeof(int))) 
-    {
-        cerr << "ERROR writing to socket" << endl;
-        exit(0);
-    }
-    if (write(sockfd,buffer.c_str(),msgSize)) 
-    {
-        cerr << "ERROR writing to socket" << endl;
-        exit(0);
-    }
-    if (read(sockfd,&msgSize,sizeof(int))) 
-    {
-        cerr << "ERROR reading from socket" << endl;
-        exit(0);
-    }
+    if (write(sockfd,&msgSize,sizeof(int)))  { cerr << "ERROR writing to socket" << endl; exit(0); }
+    if (write(sockfd,buffer.c_str(),msgSize)) { cerr << "ERROR writing to socket" << endl; exit(0); }
+    if (read(sockfd,&msgSize,sizeof(int))) { cerr << "ERROR reading from socket" << endl; exit(0); }
     char *tempBuffer = new char[msgSize+1];
     bzero(tempBuffer,msgSize+1);
-    if (read(sockfd,tempBuffer,msgSize)) 
-    {
-        cerr << "ERROR reading from socket" << endl;
-        exit(0);
-    }
+    if (read(sockfd,tempBuffer,msgSize)) { cerr << "ERROR reading from socket" << endl; exit(0); }
     buffer = tempBuffer;
     delete [] tempBuffer;
     close(sockfd);
@@ -104,11 +84,7 @@ int main(int argc, char *argv[])
     vector<string> cpuCounter;
     vector<pthread_t> threadVector;
     vector<threader*> structVector;
-    if (argc != 3) 
-    {
-       cerr << "usage " << argv[0] << " hostname port" << endl;
-       exit(0);
-    }
+    if (argc != 3) { cerr << "usage " << argv[0] << " hostname port" << endl; exit(0); }
     // cout << "Please enter the message: ";
     // getline(cin,buffer);
     while(getline(cin, input))
