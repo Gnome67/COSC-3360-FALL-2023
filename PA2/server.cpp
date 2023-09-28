@@ -112,7 +112,7 @@ int main(int argc, char *argv[])
             if (read(newsockfd, tempBuffer, msgSize + 1)) { cerr << "Error reading from socket" << endl; exit(0); }
             string buffer = tempBuffer;
             delete[] tempBuffer;
-            cout << "Message from client: " << buffer << ", Message size: " << msgSize << endl;
+            // cout << "Message from client: " << buffer << ", Message size: " << msgSize << endl;
             buffer = "I got your message";
             msgSize = buffer.size();
             if (write(newsockfd, &msgSize, sizeof(int))) { cerr << "Error writing to socket" << endl; exit(0); }
