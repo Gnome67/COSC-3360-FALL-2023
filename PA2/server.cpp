@@ -22,6 +22,8 @@
 
 using namespace std;
 
+//Code is provided by Dr. Rincon from Canvas
+
 void fireman(int) { while (waitpid(-1, NULL, WNOHANG) > 0) {;} }
 
 vector<double> calculateEntropy(vector<pair<char, int>> entropyVector)
@@ -73,7 +75,7 @@ string output(vector<pair<char, int>> entropyVector, string CPUcount, int cpu)
    ostringstream entropyStream;
    for(const double& num : answer) { entropyStream << fixed << setprecision(2) << num << " "; }
    outputString += entropyStream.str();
-   entropyString.pop_back();
+   outputString.pop_back();
    return outputString;
 }
 
@@ -97,28 +99,34 @@ int main(int argc, char *argv[])
    // Set the max number of concurrent connections
    listen(sockfd, 5);
    clilen = sizeof(cli_addr);
-   signal(SIGCHLD, fireman); 
+   signal(SIGCHLD, fireman);
+   int counter = 0; 
    while(true)
+   {
+      // Accept a new connection
+      newsockfd = accept(sockfd, (struct sockaddr *)&cli_addr, (socklen_t *)&clilen);
+      if(fork() == 0)
       {
-         // Accept a new connection
-         newsockfd = accept(sockfd, (struct sockaddr *)&cli_addr, (socklen_t *)&clilen);
          if (newsockfd < 0) { cerr << "Error accepting new connections" << endl; exit(0); }
-         if(fork() == 0)
-         {
-            int msgSize = 0;
-            if (read(newsockfd, &msgSize, sizeof(int))) { cerr << "Error reading from socket" << endl; exit(0); }
-            char *tempBuffer = new char[msgSize + 1];
-            bzero(tempBuffer, msgSize + 1);
-            if (read(newsockfd, tempBuffer, msgSize + 1)) { cerr << "Error reading from socket" << endl; exit(0); }
-            string buffer = tempBuffer;
-            delete[] tempBuffer;
-            // cout << "Message from client: " << buffer << ", Message size: " << msgSize << endl;
-            buffer = "I got your message";
-            msgSize = buffer.size();
-            if (write(newsockfd, &msgSize, sizeof(int))) { cerr << "Error writing to socket" << endl; exit(0); }
-            if (write(newsockfd, buffer.c_str(), msgSize)) { cerr << "Error writing to socket" << endl; exit(0); }
-         }
+         int msgSize = 0;
+         if (read(newsockfd, &msgSize, sizeof(int)) < 0) { cerr << "Error reading size from socket" << endl; exit(0); }
+         char *tempBuffer = new char[msgSize + 1];
+         bzero(tempBuffer, msgSize + 1);
+         if (read(newsockfd, tempBuffer, msgSize + 1) < 0) { cerr << "Error reading string from socket" << endl; exit(0); }
+         string buffer = tempBuffer;
+         delete[] tempBuffer;
+         stringstream b(buffer);
+         vector<pair<char, int>> entropyVector;
+         char x; int y;
+         while(b >> x >> y) { entropyVector.push_back(make_pair(x, y)); }
+         // cout << "Message from client: " << buffer << ", Message size: " << msgSize << endl;
+         string newBuffer = output(entropyVector, buffer, counter);
+         msgSize = newBuffer.size();
+         if (write(newsockfd, &msgSize, sizeof(int)) < 0) { cerr << "Error writing size to socket" << endl; exit(0); }
+         if (write(newsockfd, newBuffer.c_str(), msgSize) < 0) { cerr << "Error writing string to socket" << endl; exit(0); }
+         counter++;
       }
+   }
    close(newsockfd);
    close(sockfd);
    return 0;
