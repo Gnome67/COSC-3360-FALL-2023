@@ -76,24 +76,16 @@ string output(vector<pair<char, int>> entropyVector, string CPUcount, int cpu)
    entropyString.pop_back();
    return outputString;
 }
-signal(SIGCHLD, fireman); 
+
 int main(int argc, char *argv[])
 {
    int sockfd, newsockfd, portno, clilen;
    struct sockaddr_in serv_addr, cli_addr;
    // Check the commandline arguments
-   if (argc != 2)
-   {
-      cerr << "Port not provided" << endl;
-      exit(0);
-   }
+   if (argc != 2) { cerr << "Port not provided" << endl; exit(0); }
    // Create the socket
    sockfd = socket(AF_INET, SOCK_STREAM, 0);
-   if (sockfd < 0)
-   {
-      cerr << "Error opening socket" << endl;
-      exit(0);
-   }
+   if (sockfd < 0) { cerr << "Error opening socket" << endl; exit(0); }
    // Populate the sockaddr_in structure
    bzero((char *)&serv_addr, sizeof(serv_addr));
    portno = atoi(argv[1]);
@@ -101,50 +93,30 @@ int main(int argc, char *argv[])
    serv_addr.sin_addr.s_addr = INADDR_ANY;
    serv_addr.sin_port = htons(portno);
    // Bind the socket with the sockaddr_in structure
-   if (bind(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
-   {
-      cerr << "Error binding" << endl;
-      exit(0);
-   }
+   if (bind(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) { cerr << "Error binding" << endl; exit(0); }
    // Set the max number of concurrent connections
    listen(sockfd, 5);
    clilen = sizeof(cli_addr);
+   signal(SIGCHLD, fireman); 
    while(true)
       {
          // Accept a new connection
          newsockfd = accept(sockfd, (struct sockaddr *)&cli_addr, (socklen_t *)&clilen);
-         if (newsockfd < 0)
+         if (newsockfd < 0) { cerr << "Error accepting new connections" << endl; exit(0); }
+         if(fork() == 0)
          {
-            cerr << "Error accepting new connections" << endl;
-            exit(0);
-         }
-         int msgSize = 0;
-         if (read(newsockfd, &msgSize, sizeof(int)))
-         {
-            cerr << "Error reading from socket" << endl;
-            exit(0);
-         }
-         char *tempBuffer = new char[msgSize + 1];
-         bzero(tempBuffer, msgSize + 1);
-         if (read(newsockfd, tempBuffer, msgSize + 1))
-         {
-            cerr << "Error reading from socket" << endl;
-            exit(0);
-         }
-         string buffer = tempBuffer;
-         delete[] tempBuffer;
-         cout << "Message from client: " << buffer << ", Message size: " << msgSize << endl;
-         buffer = "I got your message";
-         msgSize = buffer.size();
-         if (write(newsockfd, &msgSize, sizeof(int)))
-         {
-            cerr << "Error writing to socket" << endl;
-            exit(0);
-         }
-         if (write(newsockfd, buffer.c_str(), msgSize))
-         {
-            cerr << "Error writing to socket" << endl;
-            exit(0);
+            int msgSize = 0;
+            if (read(newsockfd, &msgSize, sizeof(int))) { cerr << "Error reading from socket" << endl; exit(0); }
+            char *tempBuffer = new char[msgSize + 1];
+            bzero(tempBuffer, msgSize + 1);
+            if (read(newsockfd, tempBuffer, msgSize + 1)) { cerr << "Error reading from socket" << endl; exit(0); }
+            string buffer = tempBuffer;
+            delete[] tempBuffer;
+            cout << "Message from client: " << buffer << ", Message size: " << msgSize << endl;
+            buffer = "I got your message";
+            msgSize = buffer.size();
+            if (write(newsockfd, &msgSize, sizeof(int))) { cerr << "Error writing to socket" << endl; exit(0); }
+            if (write(newsockfd, buffer.c_str(), msgSize)) { cerr << "Error writing to socket" << endl; exit(0); }
          }
       }
    close(newsockfd);
