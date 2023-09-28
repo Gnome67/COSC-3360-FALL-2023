@@ -76,7 +76,7 @@ string output(vector<pair<char, int>> entropyVector, string CPUcount, int cpu)
    entropyString.pop_back();
    return outputString;
 }
-
+signal(SIGCHLD, fireman); 
 int main(int argc, char *argv[])
 {
    int sockfd, newsockfd, portno, clilen;
@@ -109,41 +109,44 @@ int main(int argc, char *argv[])
    // Set the max number of concurrent connections
    listen(sockfd, 5);
    clilen = sizeof(cli_addr);
-   // Accept a new connection
-   newsockfd = accept(sockfd, (struct sockaddr *)&cli_addr, (socklen_t *)&clilen);
-   if (newsockfd < 0)
-   {
-      cerr << "Error accepting new connections" << endl;
-      exit(0);
-   }
-   int msgSize = 0;
-   if (read(newsockfd, &msgSize, sizeof(int)))
-   {
-      cerr << "Error reading from socket" << endl;
-      exit(0);
-   }
-   char *tempBuffer = new char[msgSize + 1];
-   bzero(tempBuffer, msgSize + 1);
-   if (read(newsockfd, tempBuffer, msgSize + 1))
-   {
-      cerr << "Error reading from socket" << endl;
-      exit(0);
-   }
-   string buffer = tempBuffer;
-   delete[] tempBuffer;
-   cout << "Message from client: " << buffer << ", Message size: " << msgSize << endl;
-   buffer = "I got your message";
-   msgSize = buffer.size();
-   if (write(newsockfd, &msgSize, sizeof(int)))
-   {
-      cerr << "Error writing to socket" << endl;
-      exit(0);
-   }
-   if (write(newsockfd, buffer.c_str(), msgSize))
-   {
-      cerr << "Error writing to socket" << endl;
-      exit(0);
-   }
+   while(true)
+      {
+         // Accept a new connection
+         newsockfd = accept(sockfd, (struct sockaddr *)&cli_addr, (socklen_t *)&clilen);
+         if (newsockfd < 0)
+         {
+            cerr << "Error accepting new connections" << endl;
+            exit(0);
+         }
+         int msgSize = 0;
+         if (read(newsockfd, &msgSize, sizeof(int)))
+         {
+            cerr << "Error reading from socket" << endl;
+            exit(0);
+         }
+         char *tempBuffer = new char[msgSize + 1];
+         bzero(tempBuffer, msgSize + 1);
+         if (read(newsockfd, tempBuffer, msgSize + 1))
+         {
+            cerr << "Error reading from socket" << endl;
+            exit(0);
+         }
+         string buffer = tempBuffer;
+         delete[] tempBuffer;
+         cout << "Message from client: " << buffer << ", Message size: " << msgSize << endl;
+         buffer = "I got your message";
+         msgSize = buffer.size();
+         if (write(newsockfd, &msgSize, sizeof(int)))
+         {
+            cerr << "Error writing to socket" << endl;
+            exit(0);
+         }
+         if (write(newsockfd, buffer.c_str(), msgSize))
+         {
+            cerr << "Error writing to socket" << endl;
+            exit(0);
+         }
+      }
    close(newsockfd);
    close(sockfd);
    return 0;
