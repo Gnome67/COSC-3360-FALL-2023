@@ -68,7 +68,7 @@ void* threadInstruct(void* arg)
     if (connect(sockfd,(struct sockaddr *)&serv_addr,sizeof(serv_addr)) < 0) { cerr << "ERROR connecting" << endl; exit(0); }
     //output
     int msgSize = buffer.size();
-    if (write(sockfd,&msgSize,sizeof(int)) < 0)  { cerr << "ERROR writing size to socket 0" << endl; exit(0); }
+    if (write(sockfd,&msgSize,sizeof(int)) < 0)  { cerr << "ERROR writing size to socket" << endl; exit(0); }
     if (write(sockfd,buffer.c_str(),msgSize) < 0) { cerr << "ERROR writing string to socket" << endl; exit(0); }
     if (read(sockfd,&msgSize,sizeof(int)) < 0) { cerr << "ERROR reading size from socket" << endl; exit(0); }
     char *tempBuffer = new char[msgSize+1];

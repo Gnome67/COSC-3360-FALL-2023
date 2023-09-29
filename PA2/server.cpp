@@ -63,14 +63,14 @@ vector<double> calculateEntropy(vector<pair<char, int>> entropyVector)
 
 string output(vector<pair<char, int>> entropyVector, string CPUcount, int cpu)
 {
-   string outputString = "CPU " + to_string(cpu+1), entropyString = "";
+   string outputString = "CPU " + to_string(cpu), entropyString = "";
    outputString += "\nTask scheduling information: ";
    stringstream s(CPUcount);
    char x; int y;
    while(s >> x >> y) { outputString = outputString + x + "(" + to_string(y) + "), "; }
    outputString.pop_back(); //remove ending space
    outputString.pop_back(); //remove ending comma
-   outputString += "\nEntropy for CPU " + to_string(cpu+1)+"\n";
+   outputString += "\nEntropy for CPU " + to_string(cpu)+"\n";
    vector<double> answer = calculateEntropy(entropyVector);
    ostringstream entropyStream;
    for(const double& num : answer) { entropyStream << fixed << setprecision(2) << num << " "; }
@@ -105,6 +105,7 @@ int main(int argc, char *argv[])
    {
       // Accept a new connection
       newsockfd = accept(sockfd, (struct sockaddr *)&cli_addr, (socklen_t *)&clilen);
+      counter++;
       if(fork() == 0)
       {
          if (newsockfd < 0) { cerr << "Error accepting new connections" << endl; exit(0); }
@@ -124,7 +125,6 @@ int main(int argc, char *argv[])
          msgSize = newBuffer.size();
          if (write(newsockfd, &msgSize, sizeof(int)) < 0) { cerr << "Error writing size to socket" << endl; exit(0); }
          if (write(newsockfd, newBuffer.c_str(), msgSize) < 0) { cerr << "Error writing string to socket" << endl; exit(0); }
-         counter++;
       }
    }
    close(newsockfd);
