@@ -20,11 +20,11 @@ struct threader //for threading
     vector<pair<char, int>> entVec; //the map containing the data for the CPU
     string inpStr; //the full unedited string 
     int ord; //the number of the thread (and CPU)
-    threader(vector<pair<char, int>> eV, string iS, int o) { //constructor
-        entVec = eV;
-        inpStr = iS;
-        ord = o;
-    }
+    int *counter;
+    pthread_mutex_t *myMutex;
+    pthread_mutex_t *myMutex2;
+    pthread_cond_t *myCond;
+    threader() {}
 };
 
 //Function for calculating the entropy as specified in the algorithm
@@ -66,30 +66,47 @@ vector<double> calculateEntropy(vector<pair<char, int>> entropyVector)
 
 //Handles the output format as specified in instructions
 
-void output(vector<pair<char, int>> entropyVector, string CPUcount, int cpu)
+void output(vector<pair<char, int>> entropyVector, string CPUcount, int cpu, pthread_mutex_t *myMutex, pthread_mutex_t *myMutex2, pthread_cond_t *myCondition, int *counter)
 {
-    string outputString = "CPU " + to_string(cpu+1), entropyString = "";
+    vector<pair<char,int>> localEntropy = entropyVector;
+    string localCPUcount = CPUcount;
+    int localCPU = cpu;
+    pthread_mutex_unlock(myMutex2);
+
+    string outputString = "CPU " + to_string(localCPU+1), entropyString = "";
     outputString += "\nTask scheduling information: ";
-    stringstream s(CPUcount);
+    stringstream s(localCPUcount);
     char x; int y;
     while(s >> x >> y) { outputString = outputString + x + "(" + to_string(y) + "), "; }
     outputString.pop_back(); //remove ending space
     outputString.pop_back(); //remove ending comma
-    outputString += "\nEntropy for CPU " + to_string(cpu+1)+"\n";
-    vector<double> answer = calculateEntropy(entropyVector);
+    outputString += "\nEntropy for CPU " + to_string(localCPU+1)+"\n";
+    vector<double> answer = calculateEntropy(localEntropy);
     ostringstream entropyStream;
     for(const double& num : answer) { entropyStream << fixed << setprecision(2) << num << " "; }
     outputString += entropyStream.str();
     entropyString.pop_back();
+
+    pthread_mutex_lock(myMutex);
+    while(*counter!=localCPU)
+        pthread_cond_wait(myCondition, myMutex);
+    pthread_mutex_unlock(myMutex);
+
     cout << outputString << endl << endl;
+
+    pthread_mutex_lock(myMutex);
+    (*counter)++;
+    pthread_cond_broadcast(myCondition);
+    pthread_mutex_unlock(myMutex);
+
 }
 
 //The threaded function telling the threads what to do
 
 void* threadInstruct(void* arg)
 {
-    threader* threadArg = (threader*) arg;
-    // output(threadArg->entVec, threadArg->inpStr, threadArg->ord);
+    threader threadArg = *(threader*) arg;
+    output(threadArg.entVec, threadArg.inpStr, threadArg.ord, threadArg.myMutex, threadArg.myMutex2, threadArg.myCond, threadArg.counter);
     return NULL;
 }
 
@@ -100,6 +117,12 @@ int main ()
     vector<pthread_t> threadVector; //vector of the threads, since we don't know how many threads there will be
     vector<vector<pair<char, int>>> allThreads; //multiple strings means multiple vector pairs
     //process input
+    pthread_mutex_t myMut;
+    pthread_mutex_init(&myMut, nullptr);
+    pthread_cond_t myCon = PTHREAD_COND_INITIALIZER;
+    pthread_mutex_t myMutTwo;
+    pthread_mutex_init(&myMutTwo, nullptr);
+    static int counter = 0;
     while(getline(cin, inputN))
     {
         if(inputN.empty()) { break; }
@@ -113,13 +136,17 @@ int main ()
     }
     //create threads
     threader newThread;
-    for(int b = 0; b < cpuCounter.size(); b++) //variable-A threads
+    newThread.counter = &counter;
+    newThread.myMutex = &myMut;
+    newThread.myCond = &myCon;
+    for(int b = 0; b < cpuCounter.size(); b++) //variable-B threads
     {
         pthread_t myThread;
-        newThread->entVec = allThreads[b];
-        newThread->inpStr = cpuCounter[b];
-        newThread->ord = b;
-        if(pthread_create(&myThread, NULL, threadInstruct, static_cast<void*> (newThread)))
+        pthread_mutex_lock(&myMutTwo);
+        newThread.entVec = allThreads[b];
+        newThread.inpStr = cpuCounter[b];
+        newThread.ord = b;
+        if(pthread_create(&myThread, NULL, threadInstruct, &newThread))
         {
             cout << "ERROR";
             return -1;
