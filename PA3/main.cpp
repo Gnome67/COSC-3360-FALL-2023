@@ -86,15 +86,9 @@ void output(vector<pair<char, int>> entropyVector, string CPUcount, int cpu, pth
     for(const double& num : answer) { entropyStream << fixed << setprecision(2) << num << " "; }
     outputString += entropyStream.str();
     entropyString.pop_back();
-
     pthread_mutex_lock(myMutex);
-    while(*counter!=localCPU)
-        pthread_cond_wait(myCondition, myMutex);
-    pthread_mutex_unlock(myMutex);
-
+    while(*counter!=localCPU) { pthread_cond_wait(myCondition, myMutex); }
     cout << outputString << endl << endl;
-
-    pthread_mutex_lock(myMutex);
     (*counter)++;
     pthread_cond_broadcast(myCondition);
     pthread_mutex_unlock(myMutex);
