@@ -111,9 +111,10 @@ int main(int argc, char *argv[])
          //write message to client
          if (write(newsockfd, &msgSize, sizeof(int)) < 0) { cerr << "Error writing size to socket" << endl; exit(0); }
          if (write(newsockfd, newBuffer.c_str(), msgSize) < 0) { cerr << "Error writing string to socket" << endl; exit(0); }
+         close(newsockfd);
+         _exit(0);
       }
    }
-   close(newsockfd);
    close(sockfd);
    return 0;
 }
