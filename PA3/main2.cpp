@@ -86,7 +86,9 @@ void output(vector<pair<char, int>> entropyVector, string CPUcount, int cpu, pth
     outputString += entropyStream.str();
     pthread_mutex_lock(mutex2);
     while(*counter!=localCPU) { pthread_cond_wait(condition, mutex2); }
+    pthread_mutex_unlock(mutex2);
     cout << outputString << endl << endl;
+    pthread_mutex_lock(mutex2);
     (*counter)++;
     pthread_cond_broadcast(condition);
     pthread_mutex_unlock(mutex2);
