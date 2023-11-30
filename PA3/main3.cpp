@@ -86,7 +86,7 @@ void* threadInstruct(void* arg)
     for(const double& num : answer) { entropyStream << fixed << setprecision(2) << num << " "; }
     outputString += entropyStream.str();
     pthread_mutex_lock(threadArg.mutex2);
-    while(*threadArg.counter!=localCPU) { pthread_cond_wait(condition, mutex2); }
+    while(*threadArg.counter!=localCPU) { pthread_cond_wait(threadArg.condition, threadArg.mutex2); }
     pthread_mutex_unlock(threadArg.mutex2);
     cout << outputString << endl << endl;
     pthread_mutex_lock(threadArg.mutex2);
