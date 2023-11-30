@@ -60,6 +60,7 @@ vector<double> calculateEntropy(vector<pair<char, int>> entropyVector)
         currFreq += extraFreq;
         freqArray[selectedTask] += extraFreq;
         currEntropy = entropy;
+        //end of algorithm
     }
     return entropyHold;
 }
@@ -68,12 +69,13 @@ vector<double> calculateEntropy(vector<pair<char, int>> entropyVector)
 
 void* threadInstruct(void* arg)
 {
-    threader threadArg = *(threader*) arg;
+    threader threadArg = *(threader*) arg; //cast back to struct
+    //create local variables
     vector<pair<char,int>> localEntropy = threadArg.entVec;
     string localCPUcount = threadArg.inpStr;
     int localCPU = threadArg.ord;
-    pthread_mutex_unlock(threadArg.mutex);
-    string outputString = "CPU " + to_string(localCPU+1);
+    pthread_mutex_unlock(threadArg.mutex); //unlock the mutex from main
+    string outputString = "CPU " + to_string(localCPU+1); //set up the output
     outputString += "\nTask scheduling information: ";
     stringstream s(localCPUcount);
     char x; int y;
@@ -85,13 +87,13 @@ void* threadInstruct(void* arg)
     ostringstream entropyStream;
     for(const double& num : answer) { entropyStream << fixed << setprecision(2) << num << " "; }
     outputString += entropyStream.str();
-    pthread_mutex_lock(threadArg.mutex2);
+    pthread_mutex_lock(threadArg.mutex2); //get ready to output by locking down all other threads
     while(*threadArg.counter!=localCPU) { pthread_cond_wait(threadArg.condition, threadArg.mutex2); }
-    pthread_mutex_unlock(threadArg.mutex2);
-    cout << outputString << endl << endl;
-    pthread_mutex_lock(threadArg.mutex2);
+    pthread_mutex_unlock(threadArg.mutex2); //all threads are asleep now we can print
+    cout << outputString << endl << endl; //PRINT OUTSIDE CRITICAL SECTION
+    pthread_mutex_lock(threadArg.mutex2); //get next CPU ready
     (*threadArg.counter)++;
-    pthread_cond_broadcast(threadArg.condition);
+    pthread_cond_broadcast(threadArg.condition); //wake up threads
     pthread_mutex_unlock(threadArg.mutex2);
     return NULL;
 }
@@ -131,6 +133,7 @@ int main ()
     {
         pthread_t myThread;
         pthread_mutex_lock(&mutex);
+        //ensuring variables are passed in properly
         newThread.entVec = allThreads[a];
         newThread.inpStr = cpuCounter[a];
         newThread.ord = a;
